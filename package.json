@@ -1,0 +1,8 @@
+{
+    "name": "msg-app",
+    "private": true,
+    "workspaces": [
+        "server",
+        "web"
+    ]
+}
