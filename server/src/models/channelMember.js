@@ -6,12 +6,9 @@ class ChannelMember extends Model {}
 
 ChannelMember.init(
     {
-        type: {
+        role: {
             type: DataTypes.STRING,
             allowNull: false,
-            validate: {
-                is: ["member", "admin"],
-            },
         },
     },
     { sequelize, modelName: "ChannelMember" },

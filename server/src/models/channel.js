@@ -6,8 +6,14 @@ class Channel extends Model {}
 
 Channel.init(
     {
-        members: DataTypes.ARRAY(DataTypes.INTEGER),
-        lastMessageData: DataTypes.DATE,
+        memberCount: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+        },
+        lastMessageDate: {
+            type: DataTypes.DATE,
+            allowNull: false,
+        },
     },
     { sequelize, modelName: "Channel" },
 );

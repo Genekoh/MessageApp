@@ -17,6 +17,7 @@ User.init(
         email: {
             type: DataTypes.STRING,
             allowNull: false,
+            unique: true,
             validate: {
                 isEmail: true,
             },
@@ -28,7 +29,7 @@ User.init(
                 isOverMinLength(value) {
                     if (value.length <= 5) {
                         throw new Error(
-                            "Password has have a length greater than 5"
+                            "Password has have a length greater than 5",
                         );
                     }
                 },
@@ -38,7 +39,7 @@ User.init(
         refreshToken: DataTypes.STRING,
         // channels: DataTypes.ARRAY(DataTypes.STRING),
     },
-    { sequelize, modelName: "User" }
+    { sequelize, modelName: "User" },
 );
 
 module.exports = User;
