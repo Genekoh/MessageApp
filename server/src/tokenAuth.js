@@ -4,13 +4,13 @@ const jwt = require("jsonwebtoken");
 
 exports.createAccessToken = user => {
     return jwt.sign({ username: user.username }, process.env.ACCESS_TOKEN, {
-        expiresIn: "15s",
+        expiresIn: "15m",
     });
 };
 
 exports.createRefreshToken = user => {
     return jwt.sign({ username: user.username }, process.env.REFRESH_TOKEN, {
-        expiresIn: "20s",
+        expiresIn: "7d",
     });
 };
 

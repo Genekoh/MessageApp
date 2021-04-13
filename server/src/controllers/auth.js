@@ -10,7 +10,7 @@ const {
 const User = require("../models/user.js");
 const io = require("../io.js");
 
-exports.postRefreshToken = async (req, res, next) => {
+exports.postRefreshToken = async (req, res) => {
     try {
         const error = new Error();
         const refreshToken = req.cookies.jid;
@@ -21,13 +21,20 @@ exports.postRefreshToken = async (req, res, next) => {
         }
 
         let user;
-        user = jwt.verify(refreshToken, process.env.REFRESH_TOKEN).catch(() => {
+        try {
+            user = jwt.verify(refreshToken, process.env.REFRESH_TOKEN);
+        } catch (e) {
             error.status = 403;
             throw error;
-        });
+        }
 
-        // TODO: Check if refresh token matches with refresh token stored in user in database
-        const existingRefreshToken = User.findOne({ where: { refreshToken } });
+        const userInfo = await User.findOne({
+            where: { userName: username },
+        });
+        if (refreshToken !== userInfo.refreshToken) {
+            error.status = 403;
+            throw error;
+        }
 
         return res.json({ ok: true, accessToken: createAccessToken(user) });
     } catch (error) {
@@ -39,7 +46,7 @@ exports.postRefreshToken = async (req, res, next) => {
     }
 };
 
-exports.postLogin = async (req, res, next) => {
+exports.postLogin = async (req, res) => {
     try {
         const error = new Error();
 
@@ -74,7 +81,7 @@ exports.postLogin = async (req, res, next) => {
     }
 };
 
-exports.postSignup = async (req, res, next) => {
+exports.postSignup = async (req, res) => {
     try {
         const error = new Error();
         const { username, password, email } = req.body;
@@ -115,4 +122,4 @@ exports.postSignup = async (req, res, next) => {
     }
 };
 
-exports.deleteLogout = (req, res, next) => {};
+exports.deleteLogout = (req, res) => {};
