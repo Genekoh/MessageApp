@@ -7,10 +7,12 @@ const {
     createRefreshToken,
     sendRefreshToken,
 } = require("../tokenAuth.js");
-const io = require("../io.js");
+const IO = require("../socket.js");
 const throwError = require("../util/throwError.js");
 
 const User = require("../models/user.js");
+const Channel = require("../models/channel.js");
+const ChannelMember = require("../models/channelMember.js");
 
 exports.postRefreshToken = async (req, res) => {
     try {
@@ -69,6 +71,17 @@ exports.postLogin = async (req, res) => {
         user.refreshToken = refreshToken;
         await user.save();
 
+        const chan = await ChannelMember.findAll({
+            where: { UserId: user.id },
+        });
+
+        IO.getIO().on("connection", socket => {
+            chan.forEach(chanMember => {
+                console.log("client joining channel");
+                socket.join(chanMember.ChannelId.toString());
+            });
+        });
+
         sendRefreshToken(res, refreshToken);
 
         return res.status(200).json({
@@ -76,6 +89,7 @@ exports.postLogin = async (req, res) => {
             accessToken: createAccessToken({ username }),
         });
     } catch (error) {
+        console.log(error);
         if (!error.status) {
             return res.status(500).json({ ok: false, accessToken: "" });
         }

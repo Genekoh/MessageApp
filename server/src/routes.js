@@ -15,10 +15,10 @@ router.post("/refresh-token", authController.postRefreshToken);
 
 router.post("/login", authController.postLogin);
 
-router.get("/user-info/:username", isAuth, userController.getUserInfo); // TODO add isAuth middleware
+router.get("/user-info/:username", isAuth, userController.getUserInfo);
 
-router.get("/messages/:channelId", isAuth, channelController.getMessages); // TODO add isAuth middleware
+router.get("/messages/:channelId", isAuth, channelController.getMessages);
 
-router.post('/message', isAuth, channelController.postMessage)
+router.post("/message", isAuth, channelController.postMessage);
 
 module.exports = router;

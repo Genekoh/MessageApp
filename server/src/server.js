@@ -80,9 +80,9 @@ const Message = require("./models/message.js");
 
         const server = app.listen(3000);
         console.log("---- Server online ----");
-        const io = require("./io.js").init(server);
+        const io = require("./socket.js").init(server);
 
-        io.on("connection", socket => {
+        io.on("connection", async socket => {
             console.log("---- A client has connected ----");
         });
     } catch (err) {

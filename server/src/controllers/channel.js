@@ -1,4 +1,5 @@
 const throwError = require("../util/throwError.js");
+const IO = require("../socket.js");
 
 const User = require("../models/user.js");
 const Channel = require("../models/channel.js");
@@ -74,6 +75,10 @@ exports.postMessage = async (req, res) => {
 
         await channel.addMessage(message);
         await user.addMessage(message);
+
+        IO.getIO()
+            .to(channelId.toString())
+            .emit("new-message");
 
         return res.status(200).json({ ok: true });
     } catch (error) {
