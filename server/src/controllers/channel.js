@@ -1,3 +1,5 @@
+const throwError = require("../util/throwError.js");
+
 const User = require("../models/user.js");
 const Channel = require("../models/channel.js");
 const ChannelMember = require("../models/channelMember.js");
@@ -23,8 +25,7 @@ exports.getMessages = async (req, res) => {
         );
 
         if (!memberInfo.some(member => member.userName === username)) {
-            error.status = 401;
-            throw error;
+            throwError(error, 401);
         }
 
         const messages = await Message.findAll({
@@ -40,3 +41,5 @@ exports.getMessages = async (req, res) => {
         return res.status(error.status).json({ ok: false, messages: [] });
     }
 };
+
+exports.postMessages = async (req, res) => {};

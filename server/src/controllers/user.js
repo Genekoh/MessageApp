@@ -7,7 +7,3 @@ exports.getUserInfo = async (req, res) => {
         const user = await User.findOne({ where: { userName: username } });
     } catch (error) {}
 };
-
-// exports.getMessages = (req, res) => {
-
-// };

@@ -7,8 +7,10 @@ const {
     createRefreshToken,
     sendRefreshToken,
 } = require("../tokenAuth.js");
-const User = require("../models/user.js");
 const io = require("../io.js");
+const throwError = require("../util/throwError.js");
+
+const User = require("../models/user.js");
 
 exports.postRefreshToken = async (req, res) => {
     try {
@@ -16,24 +18,21 @@ exports.postRefreshToken = async (req, res) => {
         const refreshToken = req.cookies.jid;
         const username = req.body.username;
         if (!refreshToken || !username) {
-            error.status = 401;
-            throw error;
+            throwError(error, 401);
         }
 
         let user;
         try {
             user = jwt.verify(refreshToken, process.env.REFRESH_TOKEN);
         } catch (e) {
-            error.status = 403;
-            throw error;
+            throwError(error, 403);
         }
 
         const userInfo = await User.findOne({
             where: { userName: username },
         });
         if (refreshToken !== userInfo.refreshToken) {
-            error.status = 403;
-            throw error;
+            throwError(error, 403);
         }
 
         return res.json({ ok: true, accessToken: createAccessToken(user) });
@@ -50,17 +49,19 @@ exports.postLogin = async (req, res) => {
     try {
         const error = new Error();
 
-        const { username, password } = req.body;
+        const username = req.body.username;
+        const password = req.body.password;
+        if (!username || !password) {
+            throwError(error, 400);
+        }
 
         const user = await User.findOne({ where: { userName: username } });
         if (!user) {
-            error.status = 400;
-            throw error;
+            throwError(error, 400);
         }
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            error.status = 403;
-            throw error;
+            throwError(error, 403);
         }
         const refreshToken = createRefreshToken({ username });
         user.refreshToken = refreshToken;
@@ -73,6 +74,7 @@ exports.postLogin = async (req, res) => {
             accessToken: createAccessToken({ username }),
         });
     } catch (error) {
+        console.log(error);
         if (!error.status) {
             return res.status(500).json({ ok: false, accessToken: "" });
         }
@@ -89,8 +91,7 @@ exports.postSignup = async (req, res) => {
             where: { userName: username },
         });
         if (existingUser) {
-            error.status = 409;
-            throw error;
+            throwError(error, 409);
         }
 
         const hashedPassword = await bcrypt.hash(
