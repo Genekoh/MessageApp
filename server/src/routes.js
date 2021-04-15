@@ -19,4 +19,6 @@ router.get("/user-info/:username", isAuth, userController.getUserInfo); // TODO 
 
 router.get("/messages/:channelId", isAuth, channelController.getMessages); // TODO add isAuth middleware
 
+router.post('/message', isAuth, channelController.postMessage)
+
 module.exports = router;

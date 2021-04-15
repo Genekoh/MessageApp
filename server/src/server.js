@@ -24,6 +24,7 @@ const Message = require("./models/message.js");
             onDelete: "CASCADE",
         });
         Channel.hasMany(Message);
+        User.hasMany(Message);
         Message.belongsTo(Channel);
 
         // await db.sync({ force: true });

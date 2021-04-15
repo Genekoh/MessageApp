@@ -6,7 +6,7 @@ class Message extends Model {}
 
 Message.init(
     {
-        from: {
+        text: {
             type: DataTypes.TEXT,
             allowNull: false,
         },

@@ -35,7 +35,9 @@ exports.postRefreshToken = async (req, res) => {
             throwError(error, 403);
         }
 
-        return res.json({ ok: true, accessToken: createAccessToken(user) });
+        return res
+            .status(200)
+            .json({ ok: true, accessToken: createAccessToken(user) });
     } catch (error) {
         if (!error.status) {
             return res.status(500).json({ ok: false, accessToken: "" });
@@ -69,12 +71,11 @@ exports.postLogin = async (req, res) => {
 
         sendRefreshToken(res, refreshToken);
 
-        return res.json({
+        return res.status(200).json({
             ok: true,
             accessToken: createAccessToken({ username }),
         });
     } catch (error) {
-        console.log(error);
         if (!error.status) {
             return res.status(500).json({ ok: false, accessToken: "" });
         }
@@ -110,7 +111,7 @@ exports.postSignup = async (req, res) => {
 
         sendRefreshToken(res, refreshToken);
 
-        return res.json({
+        return res.status(201).json({
             ok: true,
             accessToken: createAccessToken({ username }),
         });
