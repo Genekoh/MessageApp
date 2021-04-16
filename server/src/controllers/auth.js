@@ -53,8 +53,8 @@ exports.postLogin = async (req, res) => {
     try {
         const error = new Error();
 
-        const username = req.body.username;
-        const password = req.body.password;
+        const { username, password } = req.body;
+
         if (!username || !password) {
             throwError(error, 400);
         }

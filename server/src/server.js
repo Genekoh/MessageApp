@@ -68,8 +68,8 @@ const Message = require("./models/message.js");
         }
         if (!channel) {
             channel = await Channel.create({
+                type: "dm",
                 memberCount: 2,
-                lastMessageDate: new Date(),
             });
         }
 

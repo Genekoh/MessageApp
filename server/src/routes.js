@@ -17,7 +17,15 @@ router.post("/login", authController.postLogin);
 
 router.get("/user-info/:username", isAuth, userController.getUserInfo);
 
-router.get("/messages/:channelId", isAuth, channelController.getMessages);
+router.get("/messages", isAuth, userController.getMessages);
+
+router.get(
+    "/messages/:channelId",
+    isAuth,
+    channelController.getMessagesFromChannel,
+);
+
+router.post("/create-channel", isAuth, channelController.postCreateChannel);
 
 router.post("/message", isAuth, channelController.postMessage);
 

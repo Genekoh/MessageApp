@@ -23,7 +23,7 @@ const userIsInChannel = async (username, channelId) => {
     return memberInfo.some(member => member.userName === username);
 };
 
-exports.getMessages = async (req, res) => {
+exports.getMessagesFromChannel = async (req, res) => {
     try {
         const error = new Error();
         const username = req.user.username;
@@ -62,6 +62,7 @@ exports.postMessage = async (req, res) => {
         }
 
         console.log();
+
         const message = await Message.create({ text });
         const channel = await Channel.findOne({ where: { id: channelId } });
         const user = await User.findOne({ where: { userName: username } });
@@ -88,5 +89,52 @@ exports.postMessage = async (req, res) => {
         }
 
         return res.status(error.status).json({ ok: true });
+    }
+};
+
+exports.postCreateChannel = async (req, res) => {
+    try {
+        const error = new Error();
+        const { name, type, members: memberUsernames } = req.body;
+
+        const members = await Promise.all(
+            memberUsernames.map(async memberUsername => {
+                const memberInfo = await User.findOne({
+                    where: { userName: memberUsername },
+                });
+                return memberInfo;
+            }),
+        );
+        if (members.length === 0 || members.length !== memberUsernames.length) {
+            throwError(error, 400);
+        }
+
+        let channel;
+        channel = await Channel.create({
+            name,
+            type,
+            memberCount: members.length,
+        });
+        if (!channel) {
+            throwError(error, 400);
+        }
+
+        await Promise.all(
+            members.map(async member => {
+                const role =
+                    member.userName === req.user.username ? "admin" : "member";
+                await member.addChannel(channel, {
+                    through: { role },
+                });
+            }),
+        );
+
+        return res.status(201).json({ ok: true });
+    } catch (error) {
+        if (!error.status) {
+            return res.status(500);
+        }
+
+        return res.status(error.status);
     }
 };
