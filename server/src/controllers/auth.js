@@ -14,12 +14,11 @@ const User = require("../models/user.js");
 const Channel = require("../models/channel.js");
 const ChannelMember = require("../models/channelMember.js");
 
-exports.postRefreshToken = async (req, res) => {
+exports.getRefreshToken = async (req, res) => {
     try {
         const error = new Error();
         const refreshToken = req.cookies.jid;
-        const username = req.body.username;
-        if (!refreshToken || !username) {
+        if (!refreshToken) {
             throwError(error, 401);
         }
 
@@ -28,6 +27,10 @@ exports.postRefreshToken = async (req, res) => {
             user = jwt.verify(refreshToken, process.env.REFRESH_TOKEN);
         } catch (e) {
             throwError(error, 403);
+        }
+        const username = user.username;
+        if (!username) {
+            throwError(err, 403);
         }
 
         const userInfo = await User.findOne({

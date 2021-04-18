@@ -13,7 +13,7 @@ const Message = require("./models/message.js");
     try {
         const app = express();
 
-        app.use(cors());
+        app.use(cors({ credentials: true, methods: ["GET", "POST"] }));
         app.use(cookieParser());
         app.use(express.json());
         app.use(router);
@@ -78,7 +78,9 @@ const Message = require("./models/message.js");
 
         // ! END OF DEVELOPMENT ONLY CODE
 
-        const server = app.listen(3000);
+        const port = process.env.PORT || 80;
+        console.log(port);
+        const server = app.listen(port);
         console.log("---- Server online ----");
         const io = require("./socket.js").init(server);
 

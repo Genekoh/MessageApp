@@ -11,7 +11,7 @@ const router = express.Router();
 
 // Routes
 
-router.post("/refresh-token", authController.postRefreshToken);
+router.get("/refresh-token", authController.getRefreshToken);
 
 router.post("/login", authController.postLogin);
 

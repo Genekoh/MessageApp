@@ -1,14 +1,11 @@
 export default {
-    setUser(state, payload) {
-        state.user = payload;
+    setUsername(state, payload) {
+        state.username = payload;
     },
-    addMessage(state, { contact, message }) {
-        state.messages[contact]?.append(message);
+    addMessage(state, { channelId, message }) {
+        state.channels[channelId].messages.append(message);
     },
-    setMessage(state, { contact, message }) {
-        state.messages[contact] = message;
-    },
-    setContactList(state, payload) {
-        state.contactList = payload;
+    setMessage(state, { channelId, messages }) {
+        state.channels[channelId].messages = messages;
     }
 };

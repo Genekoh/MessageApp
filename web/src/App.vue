@@ -3,20 +3,32 @@
 </template>
 
 <script>
-import io from "socket.io-client";
+// import io from "socket.io-client";
 import axios from "axios";
-// import { useStore } from "vuex";
+import { useStore } from "vuex";
 export default {
     async setup() {
-        // const store = useStore();
-        const socket = io("ws://localhost:3000");
-        socket.onmessage = ({ data }) => {
-            console.log("message from server", data);
-        };
-        const { data: userData } = await axios.get(
-            "http://localhost:3000/setup"
-        );
-        console.log(userData);
+        try {
+            const store = useStore();
+
+            const hi = await axios.post(
+                process.env.VUE_APP_API_LINK + "/login",
+                {
+                    username: "johnDOE",
+                    password: "password123"
+                }
+            );
+            console.log(hi);
+
+            const data = await axios.post(
+                process.env.VUE_APP_API_LINK + "/refresh-token"
+            );
+
+            store;
+            data;
+        } catch (error) {
+            console.log(error);
+        }
     }
 };
 </script>
