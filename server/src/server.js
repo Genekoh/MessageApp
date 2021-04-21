@@ -15,7 +15,6 @@ const Message = require("./models/message.js");
 (async () => {
     try {
         const app = express();
-
         app.use(
             cors({
                 credentials: true,
@@ -104,7 +103,6 @@ const Message = require("./models/message.js");
             console.log("---- A client has connected ----");
         });
     } catch (err) {
-        console.log("hi");
         console.log(err);
     }
 })();
