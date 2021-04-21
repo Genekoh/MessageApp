@@ -12,20 +12,23 @@ export default {
             const store = useStore();
 
             const hi = await axios.post(
-                process.env.VUE_APP_API_LINK + "/login",
+                `${process.env.VUE_APP_API_LINK}/login`,
                 {
                     username: "johnDOE",
                     password: "password123"
+                },
+                {
+                    withCredentials: true
                 }
             );
             console.log(hi);
 
-            const data = await axios.post(
-                process.env.VUE_APP_API_LINK + "/refresh-token"
+            const data = await axios.get(
+                `${process.env.VUE_APP_API_LINK}/refresh-token`
             );
+            console.log(data);
 
             store;
-            data;
         } catch (error) {
             console.log(error);
         }
