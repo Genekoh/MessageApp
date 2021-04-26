@@ -16,6 +16,7 @@ const ChannelMember = require("../models/channelMember.js");
 
 exports.getRefreshToken = async (req, res) => {
     try {
+
         const error = new Error();
         const refreshToken = req.cookies.jid;
         if (!refreshToken) {
@@ -37,6 +38,8 @@ exports.getRefreshToken = async (req, res) => {
             where: { userName: username },
         });
         if (refreshToken !== userInfo.refreshToken) {
+            console.log(userInfo.refreshToken);
+            console.log(refreshToken);
             throwError(error, 403);
         }
 
@@ -44,6 +47,7 @@ exports.getRefreshToken = async (req, res) => {
             .status(200)
             .json({ ok: true, accessToken: createAccessToken(user) });
     } catch (error) {
+        console.log(error);
         if (!error.status) {
             return res.status(500).json({ ok: false, accessToken: "" });
         }

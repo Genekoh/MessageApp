@@ -1,6 +1,5 @@
 require("dotenv").config();
 const fs = require("fs");
-const https = require("https");
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -22,11 +21,6 @@ const Message = require("./models/message.js");
                 origin: process.env.CLIENT_URL,
             }),
         );
-        app.use((req, res, next) => {
-            console.log(req.cookies);
-            console.log(req.method);
-            next();
-        });
         app.use(cookieParser());
         app.use(express.json());
         app.use(router);
@@ -90,12 +84,7 @@ const Message = require("./models/message.js");
         await dummyUser2.addChannel(channel, { through: { role: "member" } });
 
         // ! END OF DEVELOPMENT ONLY CODE
-        const options = {
-            cert: fs.readFileSync("server.cert"),
-            key: fs.readFileSync("server.key"),
-        };
-        console.log(port);
-        const server = https.createServer(options, app).listen();
+        const server = app.listen(3000);
         console.log("---- Server online ----");
         const io = require("./socket.js").init(server);
 

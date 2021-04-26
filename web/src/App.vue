@@ -11,8 +11,8 @@ export default {
         try {
             const store = useStore();
 
-            const hi = await axios.post(
-                `${process.env.VUE_APP_API_LINK}/login`,
+            await axios.post(
+                process.env.VUE_APP_API_LINK + "/login",
                 {
                     username: "johnDOE",
                     password: "password123"
@@ -21,12 +21,25 @@ export default {
                     withCredentials: true
                 }
             );
-            console.log(hi);
 
-            const data = await axios.get(
-                `${process.env.VUE_APP_API_LINK}/refresh-token`
+            const refreshToken = await axios.get(
+                `${process.env.VUE_APP_API_LINK}/refresh-token`,
+                {
+                    withCredentials: true
+                }
             );
-            console.log(data);
+
+            const accessToken = refreshToken.data.accessToken;
+
+            const messages = await axios.get(
+                `${process.env.VUE_APP_API_LINK}/user-info`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`
+                    }
+                }
+            );
+            console.log(messages);
 
             store;
         } catch (error) {

@@ -6,8 +6,16 @@ import actions from "./actions.js";
 
 const store = createStore({
     state: {
+        accessToken: null,
         username: null,
-        accessToken: null
+        channels: []
+        /*
+        {
+            members: ['gene'],
+            channelName: 'hi',
+            
+        }
+        */
     },
     mutations,
     getters,

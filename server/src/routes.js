@@ -11,13 +11,13 @@ const router = express.Router();
 
 // Routes
 
+// Unprotected Routes
 router.get("/refresh-token", authController.getRefreshToken);
 
 router.post("/login", authController.postLogin);
 
-router.get("/user-info/:username", isAuth, userController.getUserInfo);
-
-router.get("/messages", isAuth, userController.getMessages);
+// Protected Routes
+router.get("/user-info", isAuth, userController.getUserInfo);
 
 router.get(
     "/messages/:channelId",

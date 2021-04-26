@@ -5,14 +5,6 @@ const throwError = require("../util/throwError.js");
 
 exports.getUserInfo = async (req, res) => {
     try {
-        const { username } = req.params;
-
-        const user = await User.findOne({ where: { userName: username } });
-    } catch (error) {}
-};
-
-exports.getMessages = async (req, res) => {
-    try {
         const error = new Error();
         const { username } = req.user;
 
@@ -37,15 +29,35 @@ exports.getMessages = async (req, res) => {
             }),
         );
 
-        const formattedOutput = {};
-        userChannels.forEach(chan => {
-            const msg = messages.filter(m => {
-                return m.ChannelId === chan.ChannelId;
-            });
-            formattedOutput[chan.ChannelId] = msg;
-        });
+        const channels = {};
 
-        return res.status(200).json({ ok: true, messages: formattedOutput });
+        await Promise.all(
+            userChannels.map(async chan => {
+                const channelMembers = await ChannelMember.findAll({
+                    where: { ChannelId: chan.ChannelId },
+                    attributes: ["UserId"],
+                    raw: true,
+                });
+                const channelMemberIds = channelMembers.map(c => c.UserId);
+
+                const users = await User.findAll({
+                    where: { id: channelMemberIds },
+                    attributes: ["userName"],
+                    raw: true,
+                });
+                const usernames = users.map(u => u.userName);
+
+                const name = chan.name ? chan.name : usernames.join(", ");
+                const msg = messages.filter(m => {
+                    return m.ChannelId === chan.ChannelId;
+                });
+                channels[name] = msg;
+            }),
+        );
+
+        // const user = {};
+
+        return res.status(200).json({ ok: true, messages: channels });
     } catch (error) {
         console.log(error);
         if (!error.status) {

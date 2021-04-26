@@ -17,10 +17,9 @@ exports.createRefreshToken = user => {
 exports.sendRefreshToken = (res, token) => {
     res.cookie("jid", token, {
         httpOnly: true,
-        path: "/refresh-token",
-        sameSite: "None",
-        secure: true,
-        // expiresIn: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 days
+        sameSite: "Lax",
+        path: "/",
+        // secure: true,
     });
 };
 
