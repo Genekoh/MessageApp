@@ -18,7 +18,6 @@ const getUserChannels = async id => {
     });
 
     const channelIds = cm.map(c => c.ChannelId);
-    console.log(channelIds);
     const userChannels = await Channel.findAll({ where: { id: channelIds } });
     return userChannels;
 };
@@ -44,8 +43,19 @@ const getChannelMembers = async chanId => {
         where: { ChannelId: chanId },
         attributes: ["UserId"],
         raw: true,
+        include: [
+            {
+                model: User,
+                attributes: ["userName"],
+            },
+        ],
     });
-    return channelMembers;
+    const formattedChannelMembers = channelMembers.map(c => {
+        c["username"] = c["User.userName"];
+        delete c["User.userName"];
+        return c;
+    });
+    return formattedChannelMembers;
 };
 
 exports.getUserInfo = async (req, res) => {
@@ -75,6 +85,7 @@ exports.getUserInfo = async (req, res) => {
                 const msg = messages[channel.id];
                 channels.push({
                     channelId: channel.id,
+                    members: channelMembers,
                     type: channel.type,
                     name,
                     messages: msg,
@@ -84,7 +95,6 @@ exports.getUserInfo = async (req, res) => {
 
         return res.status(200).json({ ok: true, channels });
     } catch (error) {
-        console.log(error);
         if (!error.status) {
             return res.status(500).json({ ok: false, channels: null });
         }

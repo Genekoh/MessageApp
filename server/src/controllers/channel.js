@@ -29,7 +29,7 @@ exports.getMessagesFromChannel = async (req, res) => {
         const username = req.user.username;
         const channelId = req.params.channelId;
 
-        const isAuthorized = userIsInChannel(username, channelId);
+        const isAuthorized = await userIsInChannel(username, channelId);
         if (!isAuthorized) {
             throwError(error, 401);
         }

@@ -11,7 +11,7 @@ export default {
         try {
             const store = useStore();
 
-            await axios.post(
+            const login = await axios.post(
                 process.env.VUE_APP_API_LINK + "/login",
                 {
                     username: "johnDOE",
@@ -22,14 +22,7 @@ export default {
                 }
             );
 
-            const refreshToken = await axios.get(
-                `${process.env.VUE_APP_API_LINK}/refresh-token`,
-                {
-                    withCredentials: true
-                }
-            );
-
-            const accessToken = refreshToken.data.accessToken;
+            const accessToken = login.data.accessToken;
 
             const messages = await axios.get(
                 `${process.env.VUE_APP_API_LINK}/user-info`,

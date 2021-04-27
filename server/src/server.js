@@ -26,13 +26,15 @@ const Message = require("./models/message.js");
         app.use(router);
 
         User.belongsToMany(Channel, { through: ChannelMember });
+        User.hasMany(ChannelMember);
+        ChannelMember.belongsTo(User);
         Channel.belongsToMany(User, {
             through: ChannelMember,
             onDelete: "CASCADE",
         });
         Channel.hasMany(Message);
-        User.hasMany(Message);
         Message.belongsTo(Channel);
+        User.hasMany(Message);
 
         // await db.sync({ force: true });
         await db.sync();
