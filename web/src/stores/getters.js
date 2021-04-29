@@ -1,12 +1,10 @@
 export default {
-    contactList(state) {
-        return state.contactList;
+    channels(state) {
+        return state.channels;
     },
-
-    messages(state) {
-        return state.messages;
+    accessToken(state) {
+        return state.accessToken;
     },
-
     isAuthenticated(state) {
         return !!state.accessToken;
     }

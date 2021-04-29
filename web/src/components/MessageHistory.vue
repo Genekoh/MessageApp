@@ -1,7 +1,7 @@
 <template>
     <ul>
         <li v-for="message in messageHistory" :key="message.date">
-            <base-message :message="message.message"></base-message>
+            <base-message :message="message.text"></base-message>
         </li>
     </ul>
     <message-input></message-input>
@@ -17,20 +17,20 @@ import MessageInput from "./MesssageInput.vue";
 export default {
     components: { BaseMessage, MessageInput },
     props: {
-        contact: {
+        channelId: {
             type: String,
-            required: true
-        }
+            required: true,
+        },
     },
     setup(props) {
         const store = useStore();
 
         const messageHistory = computed(
-            () => store.getters.messages[props.contact]
+            () => store.getters.channels[props.channelId].messages,
         );
 
         return { messageHistory };
-    }
+    },
 };
 </script>
 

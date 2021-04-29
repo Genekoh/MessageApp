@@ -2,25 +2,7 @@ const Channel = require("../models/channel.js");
 const ChannelMember = require("../models/channelMember.js");
 const Message = require("../models/message.js");
 const User = require("../models/user.js");
-const throwError = require("../util/throwError.js");
-
-const getUser = async condition => {
-    const user = await User.findOne({ where: condition });
-    if (!user) {
-        throwError(error, 400);
-    }
-    return user;
-};
-
-const getUserChannels = async id => {
-    const cm = await ChannelMember.findAll({
-        where: { UserId: id },
-    });
-
-    const channelIds = cm.map(c => c.ChannelId);
-    const userChannels = await Channel.findAll({ where: { id: channelIds } });
-    return userChannels;
-};
+const { throwError, getUser, getUserChannels } = require("../util");
 
 const getAllUserMessages = async userChannels => {
     const messages = {};
@@ -60,7 +42,6 @@ const getChannelMembers = async chanId => {
 
 exports.getUserInfo = async (req, res) => {
     try {
-        const error = new Error();
         const { username } = req.user;
 
         const user = await getUser({ userName: username });
@@ -68,7 +49,7 @@ exports.getUserInfo = async (req, res) => {
 
         const messages = await getAllUserMessages(userChannels);
 
-        const channels = [];
+        const channels = {};
         await Promise.all(
             userChannels.map(async channel => {
                 const channelMembers = await getChannelMembers(channel.id);
@@ -83,13 +64,13 @@ exports.getUserInfo = async (req, res) => {
 
                 const name = channel.name ? channel.name : usernames.join(", ");
                 const msg = messages[channel.id];
-                channels.push({
+                channels[channel.id] = {
                     channelId: channel.id,
                     members: channelMembers,
                     type: channel.type,
                     name,
                     messages: msg,
-                });
+                };
             }),
         );
 
@@ -103,6 +84,33 @@ exports.getUserInfo = async (req, res) => {
     }
 };
 
-/*
-channels
-*/
+exports.postAddFriend = async (req, res) => {
+    try {
+        const { friendUsername } = req.body;
+        const { username } = req.user;
+
+        if (!friendUsername) {
+            throwError(400, "unable to find friend username in request body");
+        }
+        if (!username) {
+            throwError(401, "invalid authorization header");
+        }
+
+        const user = await getUser({ userName: username });
+        const friendUser = await getUser({ userName: friendUsername });
+
+        await Promise.all(
+            [user.addFriendUser(friendUser)],
+            [friendUser.addFriendUser(user)],
+        );
+
+        return res.status(200).json({ ok: true });
+    } catch (error) {
+        console.log(error);
+        if (!error.status) {
+            return res.status(500).json({ ok: false });
+        }
+
+        return res.status(error.status).json({ ok: false });
+    }
+};

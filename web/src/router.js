@@ -40,7 +40,7 @@ const router = createRouter({
             beforeEnter: redirectIfAuth
         },
         {
-            path: "/messages/:contact?",
+            path: "/messages/:channel?",
             name: "MessagesRoute",
             component: Messages,
             beforeEnter: redirectIfNotAuth

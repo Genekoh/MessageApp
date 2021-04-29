@@ -1,4 +1,3 @@
-const { text } = require("express");
 const { DataTypes, Model } = require("sequelize");
 
 const sequelize = require("../database.js");

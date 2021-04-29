@@ -8,7 +8,7 @@ const store = createStore({
     state: {
         accessToken: null,
         username: null,
-        channels: []
+        channels: {},
         /*
         {
             members: ['gene'],
@@ -19,7 +19,7 @@ const store = createStore({
     },
     mutations,
     getters,
-    actions
+    actions,
 });
 
 export default store;

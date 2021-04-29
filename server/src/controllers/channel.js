@@ -1,4 +1,10 @@
-const throwError = require("../util/throwError.js");
+const {
+    throwError,
+    userIsInChannel,
+    getChannelMessages,
+    getUser,
+    usersAreFriends,
+} = require("../util");
 const IO = require("../socket.js");
 
 const User = require("../models/user.js");
@@ -6,37 +12,17 @@ const Channel = require("../models/channel.js");
 const ChannelMember = require("../models/channelMember.js");
 const Message = require("../models/message.js");
 
-const userIsInChannel = async (username, channelId) => {
-    const members = await ChannelMember.findAll({
-        where: { ChannelId: channelId },
-    });
-
-    const memberInfo = await Promise.all(
-        members.map(async member => {
-            const user = await User.findOne({
-                where: { id: member.UserId },
-            });
-            return user;
-        }),
-    );
-
-    return memberInfo.some(member => member.userName === username);
-};
-
 exports.getMessagesFromChannel = async (req, res) => {
     try {
-        const error = new Error();
         const username = req.user.username;
         const channelId = req.params.channelId;
 
         const isAuthorized = await userIsInChannel(username, channelId);
         if (!isAuthorized) {
-            throwError(error, 401);
+            throwError(401, "user not authorized");
         }
 
-        const messages = await Message.findAll({
-            where: { ChannelId: channelId },
-        });
+        const messages = await getChannelMessages({ ChannelId: channelId });
 
         return res.status(200).json({ ok: true, messages });
     } catch (error) {
@@ -50,7 +36,6 @@ exports.getMessagesFromChannel = async (req, res) => {
 
 exports.postMessage = async (req, res) => {
     try {
-        const error = new Error();
         const username = req.user.username;
         const channelId = req.body.channelId;
         console.log(req.body);
@@ -58,7 +43,7 @@ exports.postMessage = async (req, res) => {
 
         const isAuthorized = await userIsInChannel(username, channelId);
         if (!isAuthorized) {
-            throwError(error, 401);
+            throwError(401, "user is not authorized");
         }
 
         console.log();
@@ -68,10 +53,10 @@ exports.postMessage = async (req, res) => {
         const user = await User.findOne({ where: { userName: username } });
 
         if (!channel) {
-            throwError(error, 400);
+            throwError(400, "unable to find channel");
         }
         if (!user) {
-            throwError(error, 401);
+            throwError(401, "unable to find user");
         }
 
         await channel.addMessage(message);
@@ -88,25 +73,30 @@ exports.postMessage = async (req, res) => {
             return res.status(500).json({ ok: false });
         }
 
-        return res.status(error.status).json({ ok: true });
+        return res.status(error.status).json({ ok: false });
     }
 };
 
 exports.postCreateChannel = async (req, res) => {
     try {
-        const error = new Error();
         const { name, type, members: memberUsernames } = req.body;
+        const { username } = req.user;
 
         const members = await Promise.all(
             memberUsernames.map(async memberUsername => {
-                const memberInfo = await User.findOne({
-                    where: { userName: memberUsername },
-                });
+                const memberInfo = await getUser({ userName: memberUsername });
+                const memberAreFriend = await usersAreFriends(
+                    username,
+                    memberUsername,
+                );
+                if (!memberAreFriend && memberUsername !== username) {
+                    throwError(401, "user aren't friends");
+                }
                 return memberInfo;
             }),
         );
         if (members.length === 0 || members.length !== memberUsernames.length) {
-            throwError(error, 400);
+            throwError(400, "invalid username");
         }
 
         let channel;
@@ -116,7 +106,7 @@ exports.postCreateChannel = async (req, res) => {
             memberCount: members.length,
         });
         if (!channel) {
-            throwError(error, 400);
+            throwError(400, "unable to create channel");
         }
 
         await Promise.all(
@@ -131,10 +121,11 @@ exports.postCreateChannel = async (req, res) => {
 
         return res.status(201).json({ ok: true });
     } catch (error) {
-        if (!error.status) {
-            return res.status(500);
+        console.log(error);
+        if (!error || !error.status) {
+            return res.status(500).json({ ok: false });
         }
 
-        return res.status(error.status);
+        return res.status(error.status).json({ ok: false });
     }
 };

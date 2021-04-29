@@ -8,7 +8,7 @@ const {
     sendRefreshToken,
 } = require("../tokenAuth.js");
 const IO = require("../socket.js");
-const throwError = require("../util/throwError.js");
+const { throwError, getUser } = require("../util");
 
 const User = require("../models/user.js");
 const Channel = require("../models/channel.js");
@@ -16,36 +16,33 @@ const ChannelMember = require("../models/channelMember.js");
 
 exports.getRefreshToken = async (req, res) => {
     try {
-
-        const error = new Error();
         const refreshToken = req.cookies.jid;
         if (!refreshToken) {
-            throwError(error, 401);
+            throwError(401, "unable to find refresh token in cookies");
         }
 
         let user;
-        try {
-            user = jwt.verify(refreshToken, process.env.REFRESH_TOKEN);
-        } catch (e) {
-            throwError(error, 403);
-        }
+        await jwt.verify(refreshToken, process.env.REFRESH_TOKEN, (e, u) => {
+            if (e) return throwError(403, "invalid refresh token");
+            user = u;
+        });
+
         const username = user.username;
+        console.log(username, "hi");
         if (!username) {
-            throwError(err, 403);
+            throwError(403, "invalid authorization header");
         }
 
         const userInfo = await User.findOne({
             where: { userName: username },
         });
         if (refreshToken !== userInfo.refreshToken) {
-            console.log(userInfo.refreshToken);
-            console.log(refreshToken);
-            throwError(error, 403);
+            throwError(403, "invalid refresh token");
         }
 
         return res
             .status(200)
-            .json({ ok: true, accessToken: createAccessToken(user) });
+            .json({ ok: true, username, accessToken: createAccessToken(user) });
     } catch (error) {
         console.log(error);
         if (!error.status) {
@@ -58,21 +55,16 @@ exports.getRefreshToken = async (req, res) => {
 
 exports.postLogin = async (req, res) => {
     try {
-        const error = new Error();
-
         const { username, password } = req.body;
 
         if (!username || !password) {
-            throwError(error, 400);
+            throwError(400, "invalid request body");
         }
 
-        const user = await User.findOne({ where: { userName: username } });
-        if (!user) {
-            throwError(error, 400);
-        }
+        const user = await getUser({ userName: username });
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            throwError(error, 403);
+            throwError(403, "password doesn't match with hash");
         }
         const refreshToken = createRefreshToken({ username });
         user.refreshToken = refreshToken;
@@ -93,6 +85,7 @@ exports.postLogin = async (req, res) => {
 
         return res.status(200).json({
             ok: true,
+            username,
             accessToken: createAccessToken({ username }),
         });
     } catch (error) {
@@ -107,13 +100,12 @@ exports.postLogin = async (req, res) => {
 
 exports.postSignup = async (req, res) => {
     try {
-        const error = new Error();
         const { username, password, email } = req.body;
         const existingUser = await User.findOne({
             where: { userName: username },
         });
         if (existingUser) {
-            throwError(error, 409);
+            throwError(409, "existing user");
         }
 
         const hashedPassword = await bcrypt.hash(
@@ -145,4 +137,20 @@ exports.postSignup = async (req, res) => {
     }
 };
 
-exports.deleteLogout = (req, res) => {};
+exports.deleteLogout = async (req, res) => {
+    try {
+        const { username } = req.user;
+
+        const user = await getUser({ userName: username });
+        user.refreshToken = null;
+        await user.save();
+
+        return res.status(200).json({ ok: true });
+    } catch (error) {
+        if (!error.status) {
+            return res.status(500).json({ ok: false });
+        }
+
+        return res.status(error.status).json({ ok: false });
+    }
+};

@@ -10,6 +10,7 @@ const User = require("./models/user.js");
 const Channel = require("./models/channel.js");
 const ChannelMember = require("./models/channelMember.js");
 const Message = require("./models/message.js");
+const Friend = require("./models/friend.js");
 
 (async () => {
     try {
@@ -18,7 +19,7 @@ const Message = require("./models/message.js");
             cors({
                 credentials: true,
                 methods: ["GET", "POST", "DELETE", "OPTIONS"],
-                origin: process.env.CLIENT_URL,
+                origin: process.env.CLIENT_URL.split(","),
             }),
         );
         app.use(cookieParser());
@@ -35,6 +36,11 @@ const Message = require("./models/message.js");
         Channel.hasMany(Message);
         Message.belongsTo(Channel);
         User.hasMany(Message);
+        User.belongsToMany(User, {
+            as: "FriendUser",
+            through: Friend,
+        });
+        User.hasMany(Friend);
 
         // await db.sync({ force: true });
         await db.sync();
@@ -46,6 +52,8 @@ const Message = require("./models/message.js");
         let dummyUser1 = await User.findByPk(1);
         let dummyUser2 = await User.findByPk(2);
         let channel = await Channel.findByPk(1);
+        let friend1 = await Friend.findByPk(1);
+        let friend2 = await Friend.findByPk(2);
 
         if (!dummyUser1) {
             let password1 = await bcrypt.hash(
@@ -75,6 +83,12 @@ const Message = require("./models/message.js");
                     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkdlbmUiLCJpYXQiOjE2MTgyMzQxNTUsImV4cCI6MTYxODgzODk1NX0.bZZEy0K7xg78J5HSYkjzd739GCg1w7TGW6U5XZRp1VY",
             });
         }
+        // if (!friend1) {
+        //     await dummyUser1.addFriendUser(dummyUser2);
+        // }
+        // if (!friend2) {
+        //     await dummyUser2.addFriendUser(dummyUser1);
+        // }
         if (!channel) {
             channel = await Channel.create({
                 type: "dm",

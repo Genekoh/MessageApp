@@ -17,7 +17,11 @@ router.get("/refresh-token", authController.getRefreshToken);
 router.post("/login", authController.postLogin);
 
 // Protected Routes
+router.delete("/logout", isAuth, authController.deleteLogout);
+
 router.get("/user-info", isAuth, userController.getUserInfo);
+
+router.post("/add-friend", isAuth, userController.postAddFriend);
 
 router.get(
     "/messages/:channelId",
