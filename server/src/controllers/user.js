@@ -2,43 +2,13 @@ const Channel = require("../models/channel.js");
 const ChannelMember = require("../models/channelMember.js");
 const Message = require("../models/message.js");
 const User = require("../models/user.js");
-const { throwError, getUser, getUserChannels } = require("../util");
-
-const getAllUserMessages = async userChannels => {
-    const messages = {};
-    await Promise.all(
-        userChannels.map(async chan => {
-            const m = await Message.findAll({
-                where: { ChannelId: chan.id },
-            });
-
-            // messages = [...messages, ...m];
-            messages[chan.id] = m;
-        }),
-    );
-
-    return messages;
-};
-
-const getChannelMembers = async chanId => {
-    const channelMembers = await ChannelMember.findAll({
-        where: { ChannelId: chanId },
-        attributes: ["UserId"],
-        raw: true,
-        include: [
-            {
-                model: User,
-                attributes: ["userName"],
-            },
-        ],
-    });
-    const formattedChannelMembers = channelMembers.map(c => {
-        c["username"] = c["User.userName"];
-        delete c["User.userName"];
-        return c;
-    });
-    return formattedChannelMembers;
-};
+const {
+    throwError,
+    getUser,
+    getUserChannels,
+    getAllUserMessages,
+    getChannelMembers,
+} = require("../util");
 
 exports.getUserInfo = async (req, res) => {
     try {

@@ -1,5 +1,5 @@
 <template>
-    <form @submit.prevent="submitMessage">
+    <form @submit.prevent="sendMessage">
         <input type="text" v-model="message" />
         <button type="submit">Send</button>
     </form>
@@ -7,14 +7,31 @@
 
 <script>
 import { ref } from "vue";
+import { useStore } from "vuex";
 export default {
-    emits: ["messageSend"],
-    setup(props, context) {
+    props: {
+        channelId: {
+            type: String,
+            required: true,
+        },
+    },
+    setup(props) {
+        const store = useStore();
         const message = ref("");
-        const submitMessage = () => context.emit("messageSend", message.value);
 
-        return { message, submitMessage };
-    }
+        const sendMessage = () => {
+            if (message.value.trim() === "") return;
+
+            store.dispatch("sendMessage", {
+                channelId: props.channelId,
+                text: message.value,
+            });
+
+            message.value = "";
+        };
+
+        return { message, sendMessage };
+    },
 };
 </script>
 

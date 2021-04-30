@@ -7,7 +7,7 @@ const {
     createRefreshToken,
     sendRefreshToken,
 } = require("../tokenAuth.js");
-const IO = require("../socket.js");
+const { getIO } = require("../socket.js");
 const { throwError, getUser } = require("../util");
 
 const User = require("../models/user.js");
@@ -28,7 +28,6 @@ exports.getRefreshToken = async (req, res) => {
         });
 
         const username = user.username;
-        console.log(username, "hi");
         if (!username) {
             throwError(403, "invalid authorization header");
         }
@@ -44,7 +43,7 @@ exports.getRefreshToken = async (req, res) => {
             .status(200)
             .json({ ok: true, username, accessToken: createAccessToken(user) });
     } catch (error) {
-        console.log(error);
+        console.log(error.message);
         if (!error.status) {
             return res.status(500).json({ ok: false, accessToken: "" });
         }
@@ -74,7 +73,7 @@ exports.postLogin = async (req, res) => {
             where: { UserId: user.id },
         });
 
-        IO.getIO().on("connection", socket => {
+        getIO().once("connection", socket => {
             chan.forEach(chanMember => {
                 console.log("client joining channel");
                 socket.join(chanMember.ChannelId.toString());
@@ -89,7 +88,7 @@ exports.postLogin = async (req, res) => {
             accessToken: createAccessToken({ username }),
         });
     } catch (error) {
-        console.log(error);
+        console.log(error.message);
         if (!error.status) {
             return res.status(500).json({ ok: false, accessToken: "" });
         }
@@ -129,6 +128,7 @@ exports.postSignup = async (req, res) => {
             accessToken: createAccessToken({ username }),
         });
     } catch (error) {
+        console.log(error.message);
         if (!error.status) {
             return res.status(500).json({ ok: false, accessToken: "" });
         }
@@ -145,8 +145,20 @@ exports.deleteLogout = async (req, res) => {
         user.refreshToken = null;
         await user.save();
 
+        const chan = await ChannelMember.findAll({
+            where: { UserId: user.id },
+        });
+
+        getIO().once("connection", socket => {
+            chan.forEach(chanMember => {
+                console.log("client joining channel");
+                socket.leave(chanMember.ChannelId.toString());
+            });
+        });
+
         return res.status(200).json({ ok: true });
     } catch (error) {
+        console.log(error.message);
         if (!error.status) {
             return res.status(500).json({ ok: false });
         }

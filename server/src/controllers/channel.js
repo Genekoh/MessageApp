@@ -26,6 +26,7 @@ exports.getMessagesFromChannel = async (req, res) => {
 
         return res.status(200).json({ ok: true, messages });
     } catch (error) {
+        console.log(error.message);
         if (!error.status) {
             return res.status(500).json({ ok: false, messages: [] });
         }
@@ -37,9 +38,7 @@ exports.getMessagesFromChannel = async (req, res) => {
 exports.postMessage = async (req, res) => {
     try {
         const username = req.user.username;
-        const channelId = req.body.channelId;
-        console.log(req.body);
-        const text = req.body.text;
+        const { channelId, text } = req.body;
 
         const isAuthorized = await userIsInChannel(username, channelId);
         if (!isAuthorized) {
@@ -64,16 +63,16 @@ exports.postMessage = async (req, res) => {
 
         IO.getIO()
             .to(channelId.toString())
-            .emit("new-message");
+            .emit("new-message", { channelId, message });
 
-        return res.status(200).json({ ok: true });
+        return res.status(200).json({ ok: true, message });
     } catch (error) {
-        console.log(error);
+        console.log(error.message);
         if (!error.status) {
-            return res.status(500).json({ ok: false });
+            return res.status(500).json({ ok: false, message: {} });
         }
 
-        return res.status(error.status).json({ ok: false });
+        return res.status(error.status).json({ ok: false, message: {} });
     }
 };
 
@@ -121,7 +120,7 @@ exports.postCreateChannel = async (req, res) => {
 
         return res.status(201).json({ ok: true });
     } catch (error) {
-        console.log(error);
+        console.log(error.message);
         if (!error || !error.status) {
             return res.status(500).json({ ok: false });
         }

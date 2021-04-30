@@ -42,12 +42,48 @@ exports.getUserChannels = async id => {
     return userChannels;
 };
 
+exports.getAllUserMessages = async userChannels => {
+    const messages = {};
+    await Promise.all(
+        userChannels.map(async chan => {
+            const m = await Message.findAll({
+                where: { ChannelId: chan.id },
+            });
+
+            // messages = [...messages, ...m];
+            messages[chan.id] = m;
+        }),
+    );
+
+    return messages;
+};
+
 exports.getChannelMessages = async condition => {
     const messages = await Message.findAll({
         where: condition,
     });
 
     return messages;
+};
+
+exports.getChannelMembers = async chanId => {
+    const channelMembers = await ChannelMember.findAll({
+        where: { ChannelId: chanId },
+        attributes: ["UserId"],
+        raw: true,
+        include: [
+            {
+                model: User,
+                attributes: ["userName"],
+            },
+        ],
+    });
+    const formattedChannelMembers = channelMembers.map(c => {
+        c["username"] = c["User.userName"];
+        delete c["User.userName"];
+        return c;
+    });
+    return formattedChannelMembers;
 };
 
 exports.usersAreFriends = async (username, friendUsername) => {

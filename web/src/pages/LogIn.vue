@@ -2,8 +2,8 @@
     <router-link :to="{ name: 'HomeRoute' }">HOME</router-link>
     <form @submit.prevent="login">
         <div>
-            <label for="email">Email</label>
-            <input type="text" name="email" id="email" v-model="email" />
+            <label for="text">Username</label>
+            <input type="text" name="text" id="text" v-model="username" />
         </div>
         <div>
             <label for="password">Password</label>
@@ -15,7 +15,6 @@
             />
         </div>
         <button type="submit">Login</button>
-        <h1>{{ email + password }}</h1>
     </form>
 </template>
 
@@ -29,19 +28,19 @@ export default {
         const store = useStore();
         const router = useRouter();
 
-        const email = ref("");
+        const username = ref("");
         const password = ref("");
 
         const login = async () => {
             await store.dispatch("login", {
-                username: email.value,
+                username: username.value,
                 password: password.value,
             });
 
             router.push({ name: "MessagesRoute" });
         };
 
-        return { email, password, login };
+        return { username, password, login };
     },
 };
 </script>

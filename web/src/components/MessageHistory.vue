@@ -1,10 +1,10 @@
 <template>
     <ul>
-        <li v-for="message in messageHistory" :key="message.date">
+        <li v-for="message in messageHistory" :key="message">
             <base-message :message="message.text"></base-message>
         </li>
     </ul>
-    <message-input></message-input>
+    <message-input :channel-id="channelId"></message-input>
 </template>
 
 <script>

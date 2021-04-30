@@ -1,6 +1,5 @@
 import "axios";
 import axios from "axios";
-import { deleteLogout } from "../../../server/src/controllers/auth";
 
 export default {
     async login({ commit }, { username, password }) {
@@ -26,7 +25,7 @@ export default {
             return false;
         }
     },
-    async logout({ commit }) {
+    async logout({ commit, getters }) {
         try {
             await axios.delete(`${process.env.VUE_APP_API_LINK}/logout`, {
                 headers: {
@@ -76,6 +75,40 @@ export default {
         } catch (error) {
             console.log(error);
             return false;
+        }
+    },
+
+    async sendMessage({ getters }, { channelId, text }) {
+        try {
+            await axios.post(
+                `${process.env.VUE_APP_API_LINK}/message`,
+                {
+                    channelId,
+                    text,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${getters.accessToken}`,
+                    },
+                },
+            );
+
+            return true;
+        } catch (error) {
+            console.log(error);
+            return false;
+        }
+    },
+
+    addMessage({ commit, getters }, { channelId, message }) {
+        try {
+            if (!getters.channels[channelId]) {
+                throw new Error("channel not found");
+            }
+
+            commit("addMessage", { channelId, message });
+        } catch (error) {
+            console.log(error);
         }
     },
 };

@@ -9,9 +9,9 @@ export default {
         state.channels = payload;
     },
     addMessage(state, { channelId, message }) {
-        state.channels[channelId].messages?.append(message);
+        state.channels[channelId].messages.push(message);
     },
     setMessage(state, { channelId, messages }) {
         state.channels[channelId].messages = messages;
-    }
+    },
 };

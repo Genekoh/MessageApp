@@ -106,6 +106,7 @@ const Friend = require("./models/friend.js");
 
         io.on("connection", async socket => {
             console.log("---- A client has connected ----");
+            socket.on;
         });
     } catch (err) {
         console.log(err);

@@ -5,11 +5,7 @@
 </template>
 
 <script>
-export default {
-    setup() {
-        console.log("hi");
-    }
-};
+export default {};
 </script>
 
 <style></style>
