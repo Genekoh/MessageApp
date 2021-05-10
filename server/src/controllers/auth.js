@@ -11,7 +11,6 @@ const { getIO } = require("../socket.js");
 const { throwError, getUser } = require("../util");
 
 const User = require("../models/user.js");
-const Channel = require("../models/channel.js");
 const ChannelMember = require("../models/channelMember.js");
 
 exports.getRefreshToken = async (req, res) => {
@@ -99,10 +98,11 @@ exports.postLogin = async (req, res) => {
 
 exports.postSignup = async (req, res) => {
     try {
-        const { username, password, email } = req.body;
+        const { username, password } = req.body;
         const existingUser = await User.findOne({
             where: { userName: username },
         });
+        console.log(username);
         if (existingUser) {
             throwError(409, "existing user");
         }
@@ -113,10 +113,9 @@ exports.postSignup = async (req, res) => {
         );
         const refreshToken = createRefreshToken({ username });
 
-        User.create({
+        await User.create({
             userName: username,
             password: hashedPassword,
-            email,
             pathToProfilePic: null,
             refreshToken,
         });
@@ -128,7 +127,7 @@ exports.postSignup = async (req, res) => {
             accessToken: createAccessToken({ username }),
         });
     } catch (error) {
-        console.log(error.message);
+        console.log(error);
         if (!error.status) {
             return res.status(500).json({ ok: false, accessToken: "" });
         }

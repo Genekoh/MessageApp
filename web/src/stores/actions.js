@@ -10,19 +10,31 @@ export default {
                     username,
                     password,
                 },
-                {
-                    withCredentials: true,
-                },
             );
 
             const { accessToken } = res.data;
 
             commit("setAccessToken", accessToken);
             commit("setUsername", username);
-            return true;
+            return null;
         } catch (error) {
             console.log(error);
-            return false;
+            return error.message;
+        }
+    },
+    async signup({ commit }, { username, password }) {
+        try {
+            const res = await axios.post(
+                `${process.env.VUE_APP_API_LINK}/signup`,
+                { username, password },
+            );
+
+            const { accessToken } = res.data;
+
+            commit("setAccessToken", accessToken);
+            commit("setUsername", username);
+        } catch (error) {
+            console.log(error);
         }
     },
     async logout({ commit, getters }) {
@@ -35,10 +47,10 @@ export default {
 
             commit("setAccessToken", null);
             commit("setUsername", null);
-            return true;
+            return null;
         } catch (error) {
             console.log(error);
-            return false;
+            return error.message;
         }
     },
     async tryRefreshToken({ commit }) {
@@ -53,10 +65,10 @@ export default {
             const { accessToken, username } = res.data;
             commit("setAccessToken", accessToken);
             commit("setUsername", username);
-            return true;
+            return null;
         } catch (error) {
             console.log("invalid refresh token");
-            return false;
+            return error.message;
         }
     },
     async getUserChannels({ commit, getters }) {
@@ -71,10 +83,10 @@ export default {
             );
 
             commit("setChannels", res.data.channels);
-            return true;
+            return null;
         } catch (error) {
             console.log(error);
-            return false;
+            return error.message;
         }
     },
 
@@ -93,10 +105,10 @@ export default {
                 },
             );
 
-            return true;
+            return null;
         } catch (error) {
             console.log(error);
-            return false;
+            return error.message;
         }
     },
 

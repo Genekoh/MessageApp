@@ -62,7 +62,6 @@ const Friend = require("./models/friend.js");
             );
             dummyUser1 = await User.create({
                 userName: "johnDOE",
-                email: "john@doe.com",
                 password: password1,
                 pathToProfilePic: "/img/foo.png",
                 refreshToken:
@@ -76,19 +75,18 @@ const Friend = require("./models/friend.js");
             );
             dummyUser2 = await User.create({
                 userName: "JANEdoe",
-                email: "doe@jane.com",
                 password: password2,
                 pathToProfilePic: "/img/bar.png",
                 refreshToken:
                     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkdlbmUiLCJpYXQiOjE2MTgyMzQxNTUsImV4cCI6MTYxODgzODk1NX0.bZZEy0K7xg78J5HSYkjzd739GCg1w7TGW6U5XZRp1VY",
             });
         }
-        // if (!friend1) {
-        //     await dummyUser1.addFriendUser(dummyUser2);
-        // }
-        // if (!friend2) {
-        //     await dummyUser2.addFriendUser(dummyUser1);
-        // }
+        if (!friend1) {
+            await dummyUser1.addFriendUser(dummyUser2);
+        }
+        if (!friend2) {
+            await dummyUser2.addFriendUser(dummyUser1);
+        }
         if (!channel) {
             channel = await Channel.create({
                 type: "dm",

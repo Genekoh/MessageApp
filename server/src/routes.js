@@ -16,6 +16,8 @@ router.get("/refresh-token", authController.getRefreshToken);
 
 router.post("/login", authController.postLogin);
 
+router.post("/signup", authController.postSignup);
+
 // Protected Routes
 router.delete("/logout", isAuth, authController.deleteLogout);
 
