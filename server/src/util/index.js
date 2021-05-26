@@ -4,11 +4,13 @@ const ChannelMember = require("../models/channelMember.js");
 const Message = require("../models/message.js");
 const Friend = require("../models/friend.js");
 
-exports.throwError = (status, message = "") => {
+const throwError = (status, message = "") => {
     const error = new Error(message);
     error.status = status;
     throw error;
 };
+
+exports.throwError = throwError;
 
 exports.userIsInChannel = async (username, channelId) => {
     const user = await User.findOne({ where: { userName: username } });

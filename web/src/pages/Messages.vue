@@ -1,20 +1,40 @@
 <template>
-    <button @click="logout">Logout</button>
-    <div>
-        <h1>MESSAGES</h1>
-        <channel-list></channel-list>
-        <message-history
-            v-if="$route.params.channel"
-            :channel-id="$route.params.channel"
-        ></message-history>
-        <h1 v-else>hi</h1>
+    <div class="grid place-items-center mt-16">
+        <div class="flex flex-row">
+            <div
+                class="w-80 messages-height bg-laurelgreen overflow-y-scroll pl-6 pt-4 rounded-l-2xl"
+            >
+                <channel-list></channel-list>
+            </div>
+            <div
+                class="messages-width messages-height bg-timberwolf overflow-y-scroll"
+            >
+                <message-history
+                    v-if="$route.params.channel"
+                    :channel-id="$route.params.channel"
+                ></message-history>
+                <div v-else class="flex flex-col items-center">
+                    <h1 class="text-4xl font-semibold mt-8">
+                        Welcome to the Messages Page
+                    </h1>
+                    <h1 class="text-2xl font-medium mt-8 text-center">
+                        Click on any of the channel in the<br />
+                        list of channels on the left side to start talking.
+                    </h1>
+                    <img
+                        :src="require(`../assets/${randomPicture}`)"
+                        alt="dog gifs"
+                        class=" mt-14 w-80 "
+                    />
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
 import { io } from "socket.io-client";
 import { onBeforeMount } from "vue";
-import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 import ChannelList from "../components/ChannelList.vue";
 import MessageHistory from "../components/MessageHistory.vue";
@@ -23,7 +43,6 @@ export default {
     components: { ChannelList, MessageHistory },
     setup() {
         const store = useStore();
-        const router = useRouter();
 
         onBeforeMount(async () => {
             try {
@@ -39,19 +58,25 @@ export default {
             }
         });
 
-        const logout = async () => {
-            try {
-                await store.dispatch("logout");
+        const gifPics = [
+            "excited-dog.gif",
+            "excited-dog2.gif",
+            "impatient-dog.gif",
+        ];
 
-                router.push({ name: "HomeRoute" });
-            } catch (error) {
-                console.log(error);
-            }
-        };
+        const randomIndex = Math.floor(Math.random() * gifPics.length);
+        const randomPicture = gifPics[randomIndex];
 
-        return { logout };
+        return { randomPicture };
     },
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.messages-height {
+    height: 44rem;
+}
+.messages-width {
+    width: 52rem;
+}
+</style>

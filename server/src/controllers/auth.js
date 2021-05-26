@@ -98,11 +98,11 @@ exports.postLogin = async (req, res) => {
 
 exports.postSignup = async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { username, password, pathToProfilePic } = req.body;
+
         const existingUser = await User.findOne({
             where: { userName: username },
         });
-        console.log(username);
         if (existingUser) {
             throwError(409, "existing user");
         }
@@ -116,7 +116,9 @@ exports.postSignup = async (req, res) => {
         await User.create({
             userName: username,
             password: hashedPassword,
-            pathToProfilePic: null,
+            pathToProfilePic: pathToProfilePic
+                ? pathToProfilePic
+                : "default.png",
             refreshToken,
         });
 

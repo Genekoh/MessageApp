@@ -7,5 +7,11 @@ export default {
     },
     isAuthenticated(state) {
         return !!state.accessToken;
-    }
+    },
+    username(state) {
+        return state.username;
+    },
+    friends(state) {
+        return state.friends;
+    },
 };

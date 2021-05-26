@@ -1,6 +1,4 @@
-const Channel = require("../models/channel.js");
-const ChannelMember = require("../models/channelMember.js");
-const Message = require("../models/message.js");
+const Friend = require("../models/friend.js");
 const User = require("../models/user.js");
 const {
     throwError,
@@ -54,6 +52,30 @@ exports.getUserInfo = async (req, res) => {
     }
 };
 
+exports.getFriendList = async (req, res) => {
+    try {
+        const { username } = req.user;
+
+        const user = await getUser({ userName: username });
+
+        console.log("bruh", user.id);
+        const friendData = await Friend.findAll({
+            where: { UserId: user.id },
+            include: { model: User, as: "FriendUser" },
+        });
+
+        const friendList = friendData.map(f => f.FriendUser);
+
+        return res.status(200).json({ ok: true, friendList });
+    } catch (error) {}
+};
+
+exports.postProfilePic = async (req, res) => {
+    const { username } = req.user;
+
+    const user = await getUser({ userName: username });
+};
+
 exports.postAddFriend = async (req, res) => {
     try {
         const { friendUsername } = req.body;
@@ -68,6 +90,14 @@ exports.postAddFriend = async (req, res) => {
 
         const user = await getUser({ userName: username });
         const friendUser = await getUser({ userName: friendUsername });
+
+        const friend = await Friend.findOne({
+            where: { UserId: user.id, FriendUserId: friendUser.id },
+        });
+
+        if (friend) {
+            throwError(409, "user already friends");
+        }
 
         await Promise.all(
             [user.addFriendUser(friendUser)],

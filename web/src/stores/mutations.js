@@ -14,4 +14,10 @@ export default {
     setMessage(state, { channelId, messages }) {
         state.channels[channelId].messages = messages;
     },
+    setFriends(state, friends) {
+        state.friends = friends;
+    },
+    addFriends(state, friend) {
+        state.friends.push(friend);
+    },
 };

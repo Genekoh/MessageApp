@@ -27,7 +27,10 @@ User.init(
                 },
             },
         },
-        pathToProfilePic: DataTypes.STRING,
+        pathToProfilePic: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
         refreshToken: DataTypes.STRING,
         // channels: DataTypes.ARRAY(DataTypes.STRING),
     },

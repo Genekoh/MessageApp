@@ -9,6 +9,7 @@ const store = createStore({
         accessToken: null,
         username: null,
         channels: {},
+        friends: [],
         /*
         {
             members: ['gene'],

@@ -9,7 +9,6 @@ const IO = require("../socket.js");
 
 const User = require("../models/user.js");
 const Channel = require("../models/channel.js");
-const ChannelMember = require("../models/channelMember.js");
 const Message = require("../models/message.js");
 
 exports.getMessagesFromChannel = async (req, res) => {

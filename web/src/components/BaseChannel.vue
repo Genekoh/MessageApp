@@ -1,26 +1,41 @@
 <template>
     <div>
-        <h1>{{ channelName }}</h1>
+        <h1
+            class="text-2xl font-medium hover:underline"
+            :class="{ 'text-blush': isActive }"
+        >
+            {{ formattedChannelName }}
+        </h1>
     </div>
 </template>
 
 <script>
+import { computed, ref } from "vue";
+import { useRoute } from "vue-router";
+
 export default {
     props: {
         channelName: {
             type: String,
-            required: true
+            required: true,
+        },
+        id: {
+            type: Number,
+            require: true,
+        },
+    },
+    setup(props) {
+        const route = useRoute();
+        const formattedChannelName = ref(props.channelName);
+        if (props.channelName.length > 18) {
+            formattedChannelName.value = props.channelName.slice(0, 15) + "...";
         }
-        // lastMessage: {
-        //     type: String,
-        //     required: true
-        // }
-    }
+
+        const isActive = computed(
+            () => Number(route.params.channel) === props.id,
+        );
+
+        return { formattedChannelName, isActive };
+    },
 };
 </script>
-
-<style scoped>
-div {
-    background-color: #eee;
-}
-</style>

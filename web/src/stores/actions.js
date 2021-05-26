@@ -10,6 +10,7 @@ export default {
                     username,
                     password,
                 },
+                { withCredentials: true },
             );
 
             const { accessToken } = res.data;
@@ -27,14 +28,19 @@ export default {
             const res = await axios.post(
                 `${process.env.VUE_APP_API_LINK}/signup`,
                 { username, password },
+                { withCredentials: true },
             );
 
             const { accessToken } = res.data;
 
             commit("setAccessToken", accessToken);
             commit("setUsername", username);
+
+            return null;
         } catch (error) {
             console.log(error);
+
+            return error;
         }
     },
     async logout({ commit, getters }) {
@@ -47,6 +53,8 @@ export default {
 
             commit("setAccessToken", null);
             commit("setUsername", null);
+            commit("setChannels", {});
+            commit("setFriends", []);
             return null;
         } catch (error) {
             console.log(error);
@@ -113,14 +121,28 @@ export default {
     },
 
     addMessage({ commit, getters }, { channelId, message }) {
-        try {
-            if (!getters.channels[channelId]) {
-                throw new Error("channel not found");
-            }
+        if (!getters.channels[channelId]) {
+            throw new Error("channel not found");
+        }
 
-            commit("addMessage", { channelId, message });
+        commit("addMessage", { channelId, message });
+    },
+    async fetchFriendList({ commit, getters }) {
+        try {
+            const res = await axios.get(
+                `${process.env.VUE_APP_API_LINK}/friend-list`,
+                {
+                    headers: { Authorization: `Bearer ${getters.accessToken}` },
+                },
+            );
+            console.log(res);
+            const { friendList } = res.data;
+
+            commit("setFriends", friendList);
+            return null;
         } catch (error) {
             console.log(error);
+            return error;
         }
     },
 };
