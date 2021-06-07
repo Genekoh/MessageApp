@@ -50,6 +50,7 @@ exports.getAllUserMessages = async userChannels => {
         userChannels.map(async chan => {
             const m = await Message.findAll({
                 where: { ChannelId: chan.id },
+                include: User,
             });
 
             // messages = [...messages, ...m];
@@ -61,9 +62,7 @@ exports.getAllUserMessages = async userChannels => {
 };
 
 exports.getChannelMessages = async condition => {
-    const messages = await Message.findAll({
-        where: condition,
-    });
+    const messages = await Message.findAll({ where: condition });
 
     return messages;
 };

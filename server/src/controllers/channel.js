@@ -22,15 +22,21 @@ exports.getMessagesFromChannel = async (req, res) => {
         }
 
         const messages = await getChannelMessages({ ChannelId: channelId });
+        console.log("hi");
+        console.log(messages);
 
-        return res.status(200).json({ ok: true, messages });
+        return res.status(200).json({ ok: true, messages, errorMessage: "" });
     } catch (error) {
         console.log(error.message);
         if (!error.status) {
-            return res.status(500).json({ ok: false, messages: [] });
+            return res
+                .status(500)
+                .json({ ok: false, messages: [], errorMessage: error.message });
         }
 
-        return res.status(error.status).json({ ok: false, messages: [] });
+        return res
+            .status(error.status)
+            .json({ ok: false, messages: [], errorMessage: error.message });
     }
 };
 
@@ -60,18 +66,31 @@ exports.postMessage = async (req, res) => {
         await channel.addMessage(message);
         await user.addMessage(message);
 
+        const updatedMessage = await Message.findOne({
+            where: { id: message.id },
+            include: User,
+        });
+        console.log(updatedMessage.User.id);
+
         IO.getIO()
             .to(channelId.toString())
-            .emit("new-message", { channelId, message });
+            .emit("new-message", {
+                channelId,
+                message: updatedMessage,
+            });
 
-        return res.status(200).json({ ok: true, message });
+        return res.status(200).json({ ok: true, message, errorMessage: "" });
     } catch (error) {
         console.log(error.message);
         if (!error.status) {
-            return res.status(500).json({ ok: false, message: {} });
+            return res
+                .status(500)
+                .json({ ok: false, message: {}, errorMessage: error.message });
         }
 
-        return res.status(error.status).json({ ok: false, message: {} });
+        return res
+            .status(error.status)
+            .json({ ok: false, message: {}, errorMessage: error.message });
     }
 };
 
@@ -117,13 +136,17 @@ exports.postCreateChannel = async (req, res) => {
             }),
         );
 
-        return res.status(201).json({ ok: true });
+        return res.status(201).json({ ok: true, errorMessage: "" });
     } catch (error) {
         console.log(error.message);
         if (!error || !error.status) {
-            return res.status(500).json({ ok: false });
+            return res
+                .status(500)
+                .json({ ok: false, errorMessage: error.message });
         }
 
-        return res.status(error.status).json({ ok: false });
+        return res
+            .status(error.status)
+            .json({ ok: false, errorMessage: error.message });
     }
 };

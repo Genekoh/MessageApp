@@ -1,8 +1,22 @@
 <template>
-    <form @submit.prevent="sendMessage">
-        <input type="text" v-model="message" />
-        <button type="submit">Send</button>
-    </form>
+    <div>
+        <form
+            @submit.prevent="sendMessage"
+            class="text-xl flex flex-row justify-evenly my-3"
+        >
+            <input
+                type="text"
+                v-model="message"
+                class="rounded-lg w-9/12 bg-ivory px-4 text-blush font-medium"
+            />
+            <button
+                type="submit"
+                class=" font-medium text-ivory rounded-full bg-blush px-4 py-1"
+            >
+                Send
+            </button>
+        </form>
+    </div>
 </template>
 
 <script>

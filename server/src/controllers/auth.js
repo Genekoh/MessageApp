@@ -21,7 +21,7 @@ exports.getRefreshToken = async (req, res) => {
         }
 
         let user;
-        await jwt.verify(refreshToken, process.env.REFRESH_TOKEN, (e, u) => {
+        jwt.verify(refreshToken, process.env.REFRESH_TOKEN, (e, u) => {
             if (e) return throwError(403, "invalid refresh token");
             user = u;
         });
@@ -34,20 +34,43 @@ exports.getRefreshToken = async (req, res) => {
         const userInfo = await User.findOne({
             where: { userName: username },
         });
+        console.log(refreshToken === userInfo.refreshToken);
         if (refreshToken !== userInfo.refreshToken) {
+            console.log("hi");
             throwError(403, "invalid refresh token");
         }
 
-        return res
-            .status(200)
-            .json({ ok: true, username, accessToken: createAccessToken(user) });
+        const chan = await ChannelMember.findAll({
+            where: { UserId: userInfo.id },
+        });
+
+        getIO().once("connection", socket => {
+            chan.forEach(chanMember => {
+                console.log("client joining channel");
+                socket.join(chanMember.ChannelId.toString());
+            });
+        });
+
+        return res.status(200).json({
+            ok: true,
+            username,
+            id: userInfo.id,
+            accessToken: createAccessToken(user),
+            errorMessage: "",
+        });
     } catch (error) {
         console.log(error.message);
         if (!error.status) {
-            return res.status(500).json({ ok: false, accessToken: "" });
+            return res.status(500).json({
+                ok: false,
+                accessToken: "",
+                errorMessage: error.message,
+            });
         }
 
-        return res.status(error.status).json({ ok: false, accessToken: "" });
+        return res
+            .status(error.status)
+            .json({ ok: false, accessToken: "", errorMessage: error.message });
     }
 };
 
@@ -62,7 +85,7 @@ exports.postLogin = async (req, res) => {
         const user = await getUser({ userName: username });
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            throwError(403, "password doesn't match with hash");
+            throwError(403, "invalid password");
         }
         const refreshToken = createRefreshToken({ username });
         user.refreshToken = refreshToken;
@@ -84,15 +107,23 @@ exports.postLogin = async (req, res) => {
         return res.status(200).json({
             ok: true,
             username,
+            id: user.id,
             accessToken: createAccessToken({ username }),
+            errorMessage: "",
         });
     } catch (error) {
         console.log(error.message);
         if (!error.status) {
-            return res.status(500).json({ ok: false, accessToken: "" });
+            return res.status(500).json({
+                ok: false,
+                accessToken: "",
+                errorMessage: error.message,
+            });
         }
 
-        return res.status(error.status).json({ ok: false, accessToken: "" });
+        return res
+            .status(error.status)
+            .json({ ok: false, accessToken: "", errorMessage: error.message });
     }
 };
 
@@ -127,14 +158,21 @@ exports.postSignup = async (req, res) => {
         return res.status(201).json({
             ok: true,
             accessToken: createAccessToken({ username }),
+            errorMessage: "",
         });
     } catch (error) {
         console.log(error);
         if (!error.status) {
-            return res.status(500).json({ ok: false, accessToken: "" });
+            return res.status(500).json({
+                ok: false,
+                accessToken: "",
+                errorMessage: error.message,
+            });
         }
 
-        return res.status(error.status).json({ ok: false, accessToken: "" });
+        return res
+            .status(error.status)
+            .json({ ok: false, accessToken: "", errorMessage: error.message });
     }
 };
 
@@ -152,18 +190,22 @@ exports.deleteLogout = async (req, res) => {
 
         getIO().once("connection", socket => {
             chan.forEach(chanMember => {
-                console.log("client joining channel");
+                console.log("client leaving channel");
                 socket.leave(chanMember.ChannelId.toString());
             });
         });
 
-        return res.status(200).json({ ok: true });
+        return res.status(200).json({ ok: true, errorMessage: "" });
     } catch (error) {
         console.log(error.message);
         if (!error.status) {
-            return res.status(500).json({ ok: false });
+            return res
+                .status(500)
+                .json({ ok: false, errorMessage: error.message });
         }
 
-        return res.status(error.status).json({ ok: false });
+        return res
+            .status(error.status)
+            .json({ ok: false, errorMessage: error.message });
     }
 };

@@ -13,14 +13,18 @@ export default {
                 { withCredentials: true },
             );
 
-            const { accessToken } = res.data;
+            const { accessToken, id } = res.data;
 
+            console.log(res.data);
+            console.log(res.data.id);
             commit("setAccessToken", accessToken);
             commit("setUsername", username);
-            return null;
+            commit("setUserId", id);
+
+            return res.errorMessage || null;
         } catch (error) {
-            console.log(error);
-            return error.message;
+            console.dir(error);
+            return error.response.data.errorMessage;
         }
     },
     async signup({ commit }, { username, password }) {
@@ -31,16 +35,18 @@ export default {
                 { withCredentials: true },
             );
 
-            const { accessToken } = res.data;
+            const { accessToken, id } = res.data;
 
             commit("setAccessToken", accessToken);
             commit("setUsername", username);
+            commit("setUserId", id);
+            console.log(res.data.id);
 
-            return null;
+            return res.errorMessage || null;
         } catch (error) {
             console.log(error);
 
-            return error;
+            return error.response.data.errorMessage;
         }
     },
     async logout({ commit, getters }) {
@@ -53,12 +59,13 @@ export default {
 
             commit("setAccessToken", null);
             commit("setUsername", null);
+            commit("setUserId", null);
             commit("setChannels", {});
             commit("setFriends", []);
             return null;
         } catch (error) {
             console.log(error);
-            return error.message;
+            return error.response.data.errorMessage;
         }
     },
     async tryRefreshToken({ commit }) {
@@ -70,13 +77,14 @@ export default {
                 },
             );
 
-            const { accessToken, username } = res.data;
+            const { accessToken, username, id } = res.data;
             commit("setAccessToken", accessToken);
             commit("setUsername", username);
-            return null;
+            commit("setUserId", id);
+            return res.errorMessage || null;
         } catch (error) {
             console.log("invalid refresh token");
-            return error.message;
+            return error.response.data.errorMessage;
         }
     },
     async getUserChannels({ commit, getters }) {
@@ -89,18 +97,41 @@ export default {
                     },
                 },
             );
+            console.log(res.data);
 
             commit("setChannels", res.data.channels);
-            return null;
+            return res.errorMessage || null;
         } catch (error) {
             console.log(error);
-            return error.message;
+            return error.response.data.errorMessage;
+        }
+    },
+    async getUserInfo({ commit, getters }) {
+        try {
+            const res = await axios.get(
+                `${process.env.VUE_APP_API_LINK}/user-info`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${getters.accessToken}`,
+                    },
+                },
+            );
+
+            const { channels, username, id } = res.data;
+            commit("setUsername", username);
+            commit("setUserId", id);
+            commit("setChannels", channels);
+            return res.errorMessage || null;
+        } catch (error) {
+            console.log("invalid refresh token");
+            return error.response.data.errorMessage;
         }
     },
 
     async sendMessage({ getters }, { channelId, text }) {
+        let res;
         try {
-            await axios.post(
+            res = await axios.post(
                 `${process.env.VUE_APP_API_LINK}/message`,
                 {
                     channelId,
@@ -113,10 +144,10 @@ export default {
                 },
             );
 
-            return null;
+            return res.errorMessage || null;
         } catch (error) {
             console.log(error);
-            return error.message;
+            return error.response.data.errorMessage;
         }
     },
 
@@ -139,10 +170,10 @@ export default {
             const { friendList } = res.data;
 
             commit("setFriends", friendList);
-            return null;
+            return res.errorMessage || null;
         } catch (error) {
             console.log(error);
-            return error;
+            return error.response.data.errorMessage;
         }
     },
 };

@@ -11,6 +11,9 @@ export default {
     username(state) {
         return state.username;
     },
+    id(state) {
+        return state.id;
+    },
     friends(state) {
         return state.friends;
     },

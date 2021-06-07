@@ -27,6 +27,13 @@
                     v-model="password"
                 />
             </div>
+            <div v-if="isError">
+                <h1 class="text-blush text-center font-medium mb-6 text-xl">
+                    **Something went wrong, please try again ({{
+                        errorMessage
+                    }})**
+                </h1>
+            </div>
             <div class="grid place-items-center">
                 <button
                     type="submit"
@@ -49,20 +56,31 @@ export default {
         const router = useRouter();
         const username = ref("");
         const password = ref("");
+        const isError = ref(false);
+        const errorMessage = ref("invalid username and/or password");
 
         const signup = async () => {
-            const error = await store.dispatch("signup", {
+            if (!username.value || !password.value) {
+                isError.value = true;
+                return;
+            }
+
+            const returnedErrorMessage = await store.dispatch("signup", {
                 username: username.value,
                 password: password.value,
             });
 
-            if (error !== null) {
-                return console.log(error);
+            if (returnedErrorMessage !== null) {
+                isError.value = true;
+                errorMessage.value = returnedErrorMessage;
+                username.value = "";
+                password.value = "";
+                return console.log(returnedErrorMessage);
             }
             router.push({ name: "MessagesRoute" });
         };
 
-        return { username, password, signup };
+        return { username, password, signup, isError, errorMessage };
     },
 };
 </script>

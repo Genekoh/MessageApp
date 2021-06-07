@@ -24,12 +24,15 @@ export default {
             try {
                 await store.dispatch("tryRefreshToken");
 
+                const authRoutes = ["MessagesRoute", "FriendsRoute"];
+
                 if (
-                    route.name !== "MessagesRoute" ||
-                    route.name !== "FriendsRoute"
+                    !store.getters.isAuthenticated &&
+                    authRoutes.some(r => route.name === r)
                 ) {
-                    router.push({ name: "MessagesRoute" });
+                    return router.push({ name: "HomeRoute" });
                 }
+                router.push({ name: "MessagesRoute" });
             } catch (error) {
                 console.log(error);
             }

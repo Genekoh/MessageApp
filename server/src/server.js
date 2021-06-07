@@ -3,6 +3,8 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 
+const http = require("http");
+const https = require("https");
 const router = require("./routes");
 const db = require("./database.js");
 const User = require("./models/user.js");
@@ -34,6 +36,7 @@ const Friend = require("./models/friend.js");
         });
         Channel.hasMany(Message);
         Message.belongsTo(Channel);
+        Message.belongsTo(User);
         User.hasMany(Message);
         User.belongsToMany(User, {
             through: Friend,
@@ -47,10 +50,18 @@ const Friend = require("./models/friend.js");
         await db.sync();
 
         // ! Creating a  dummy user for development
-        require("./dev.js")();
+        await require("./dev.js")();
+        // ! END OF DEVELOPMENT ONLY
 
-        // ! END OF DEVELOPMENT ONLY CODE
-        const server = app.listen(3000);
+        const httpsEnabled = !!process.env.prototype;
+        let server;
+        if (httpsEnabled) {
+            const port = process.env.port || 443;
+            server = https.createServer({}, app).listen(port);
+        } else {
+            const port = process.env.port || 80;
+            server = http.createServer(app).listen(port);
+        }
         console.log("---- Server online ----");
         const io = require("./socket.js").init(server);
 

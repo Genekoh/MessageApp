@@ -42,13 +42,27 @@ exports.getUserInfo = async (req, res) => {
             }),
         );
 
-        return res.status(200).json({ ok: true, channels });
+        return res
+            .status(200)
+            .json({
+                ok: true,
+                channels,
+                username,
+                id: user.id,
+                errorMessage: "",
+            });
     } catch (error) {
         if (!error.status) {
-            return res.status(500).json({ ok: false, channels: null });
+            return res.status(500).json({
+                ok: false,
+                channels: null,
+                errorMessage: error.message,
+            });
         }
 
-        return res.status(error.status).json({ ok: false, channels: null });
+        return res
+            .status(error.status)
+            .json({ ok: false, channels: null, errorMessage: error.message });
     }
 };
 
@@ -66,8 +80,20 @@ exports.getFriendList = async (req, res) => {
 
         const friendList = friendData.map(f => f.FriendUser);
 
-        return res.status(200).json({ ok: true, friendList });
-    } catch (error) {}
+        return res.status(200).json({ ok: true, friendList, errorMessage: "" });
+    } catch (error) {
+        if (!error.status) {
+            return res.status(500).json({
+                ok: false,
+                friendList: [],
+                errorMessage: error.message,
+            });
+        }
+
+        return res
+            .status(error.status)
+            .json({ ok: false, friendList: [], errorMessage: error.message });
+    }
 };
 
 exports.postProfilePic = async (req, res) => {
@@ -104,13 +130,17 @@ exports.postAddFriend = async (req, res) => {
             [friendUser.addFriendUser(user)],
         );
 
-        return res.status(200).json({ ok: true });
+        return res.status(200).json({ ok: true, errorMessage: "" });
     } catch (error) {
         console.log(error);
         if (!error.status) {
-            return res.status(500).json({ ok: false });
+            return res
+                .status(500)
+                .json({ ok: false, errorMessage: error.message });
         }
 
-        return res.status(error.status).json({ ok: false });
+        return res
+            .status(error.status)
+            .json({ ok: false, errorMessage: error.message });
     }
 };

@@ -8,15 +8,9 @@ const store = createStore({
     state: {
         accessToken: null,
         username: null,
+        id: null,
         channels: {},
         friends: [],
-        /*
-        {
-            members: ['gene'],
-            channelName: 'hi',
-            
-        }
-        */
     },
     mutations,
     getters,

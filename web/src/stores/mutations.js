@@ -5,6 +5,9 @@ export default {
     setUsername(state, payload) {
         state.username = payload;
     },
+    setUserId(state, payload) {
+        state.id = payload;
+    },
     setChannels(state, payload) {
         state.channels = payload;
     },

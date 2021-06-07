@@ -1,8 +1,8 @@
 <template>
     <div>
         <h1
-            class="text-2xl font-medium hover:underline"
-            :class="{ 'text-blush': isActive }"
+            class="text-2xl text-center font-medium hover:underline"
+            :class="{ underline: isActive }"
         >
             {{ formattedChannelName }}
         </h1>
