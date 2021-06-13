@@ -7,7 +7,6 @@
 import { computed, onBeforeMount } from "vue";
 import { useStore } from "vuex";
 import { useRoute, useRouter } from "vue-router";
-
 import NavBar from "./components/NavBar.vue";
 export default {
     components: {
@@ -24,7 +23,7 @@ export default {
             try {
                 await store.dispatch("tryRefreshToken");
 
-                const authRoutes = ["MessagesRoute", "FriendsRoute"];
+                const authRoutes = ["MessagesRoute"];
 
                 if (
                     !store.getters.isAuthenticated &&

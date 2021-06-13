@@ -18,7 +18,6 @@ export default {
                 context.emit("closeModal");
                 document.removeEventListener("keydown", handleKeydown);
             }
-            console.log(e.key);
         };
 
         const handleClick = e => {

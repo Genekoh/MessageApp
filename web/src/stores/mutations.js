@@ -11,6 +11,9 @@ export default {
     setChannels(state, payload) {
         state.channels = payload;
     },
+    setChannel(state, { channelId, channel }) {
+        state.channels[channelId] = channel;
+    },
     addMessage(state, { channelId, message }) {
         state.channels[channelId].messages.push(message);
     },
@@ -22,5 +25,8 @@ export default {
     },
     addFriends(state, friend) {
         state.friends.push(friend);
+    },
+    setSocket(state, socket) {
+        state.socket = socket;
     },
 };

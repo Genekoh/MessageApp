@@ -37,7 +37,7 @@
             <div class="grid place-items-center">
                 <button
                     type="submit"
-                    class="font-medium text-ivory rounded-full bg-blush px-4 py-1"
+                    class="focus:outline-none font-medium text-ivory rounded-full bg-blush px-4 py-1"
                 >
                     Signup
                 </button>

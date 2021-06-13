@@ -11,7 +11,7 @@
             />
             <button
                 type="submit"
-                class=" font-medium text-ivory rounded-full bg-blush px-4 py-1"
+                class="focus:outline-none font-medium text-ivory rounded-full bg-blush px-4 py-1"
             >
                 Send
             </button>
@@ -30,6 +30,8 @@ export default {
         },
     },
     setup(props) {
+        const hi = new FormData();
+        hi.get;
         const store = useStore();
         const message = ref("");
 

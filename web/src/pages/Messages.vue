@@ -1,5 +1,5 @@
 <template>
-    <div class="grid place-items-center mt-16">
+    <div class="flex flex-row justify-evenly mt-16">
         <div class="flex flex-row">
             <div
                 class="w-80 messages-height bg-laurelgreen overflow-y-scroll pt-4  rounded-l-2xl"
@@ -7,12 +7,17 @@
                 <channel-list></channel-list>
             </div>
             <div
-                class="messages-width messages-height bg-timberwolf rounded-r-2xl"
+                class="messages-width messages-height bg-timberwolf rounded-r-2xl overflow-hidden"
             >
                 <div
                     v-if="$route.params.channel"
                     class="h-full w-full flex flex-col justify-between items-center"
                 >
+                    <div
+                        class="flex flex-row w-full py-3 px-6 bg-gunmetal justify-between items-center text-ivory text-2xl"
+                    >
+                        <channel-header></channel-header>
+                    </div>
                     <message-history
                         class="overflow-y-scroll flex-grow w-full"
                         :channel-id="$route.params.channel"
@@ -23,20 +28,13 @@
                     ></message-input>
                 </div>
                 <div v-else class="flex flex-col items-center">
-                    <h1 class="text-4xl font-semibold mt-8">
-                        Welcome to the Messages Page
-                    </h1>
-                    <h1 class="text-2xl font-medium mt-8 text-center">
-                        Click on any of the channel in the<br />
-                        list of channels on the left side to start talking.
-                    </h1>
-                    <img
-                        :src="require(`../assets/${randomPicture}`)"
-                        alt="dog gifs"
-                        class=" mt-14 w-80 "
-                    />
+                    <welcome-message></welcome-message>
                 </div>
             </div>
+        </div>
+        <div class="grid place-items-center">
+            <friend-list class="w-80 messages-height overflow-y-scroll">
+            </friend-list>
         </div>
     </div>
 </template>
@@ -46,42 +44,45 @@ import { io } from "socket.io-client";
 import { onBeforeMount, onMounted } from "vue";
 import { useStore } from "vuex";
 import ChannelList from "../components/ChannelList.vue";
+import FriendList from "../components/FriendList.vue";
 import MessageHistory from "../components/MessageHistory.vue";
 import MessageInput from "../components/MessageInput.vue";
+import ChannelHeader from "../components/ChannelHeader.vue";
+import WelcomeMessage from "../components/WelcomeMessage.vue";
 
 export default {
-    components: { ChannelList, MessageHistory, MessageInput },
+    components: {
+        ChannelList,
+        MessageHistory,
+        MessageInput,
+        FriendList,
+        ChannelHeader,
+        WelcomeMessage,
+    },
     setup() {
         const store = useStore();
 
         onBeforeMount(async () => {
             try {
-                console.log("loading");
                 await store.dispatch("getUserChannels");
-                console.log(store.getters.channels);
+
+                const error = await store.dispatch("fetchFriendList");
+                if (error !== null) {
+                    return console.log(error);
+                }
             } catch (error) {
                 console.log(error);
             }
         });
 
         onMounted(() => {
-            const socket = io(process.env.VUE_APP_API_LINK);
+            store.dispatch("setSocket", io(process.env.VUE_APP_API_LINK));
+            const { socket } = store.getters;
+
             socket.on("new-message", message => {
-                console.log("someone sent a messaage");
                 store.dispatch("addMessage", message);
             });
         });
-
-        const gifPics = [
-            "excited-dog.gif",
-            "excited-dog2.gif",
-            "impatient-dog.gif",
-        ];
-
-        const randomIndex = Math.floor(Math.random() * gifPics.length);
-        const randomPicture = gifPics[randomIndex];
-
-        return { randomPicture };
     },
 };
 </script>

@@ -15,8 +15,6 @@ export default {
 
             const { accessToken, id } = res.data;
 
-            console.log(res.data);
-            console.log(res.data.id);
             commit("setAccessToken", accessToken);
             commit("setUsername", username);
             commit("setUserId", id);
@@ -40,7 +38,6 @@ export default {
             commit("setAccessToken", accessToken);
             commit("setUsername", username);
             commit("setUserId", id);
-            console.log(res.data.id);
 
             return res.errorMessage || null;
         } catch (error) {
@@ -57,6 +54,8 @@ export default {
                 },
             });
 
+            const { socket } = getters;
+            socket.disconnect();
             commit("setAccessToken", null);
             commit("setUsername", null);
             commit("setUserId", null);
@@ -97,7 +96,6 @@ export default {
                     },
                 },
             );
-            console.log(res.data);
 
             commit("setChannels", res.data.channels);
             return res.errorMessage || null;
@@ -166,7 +164,6 @@ export default {
                     headers: { Authorization: `Bearer ${getters.accessToken}` },
                 },
             );
-            console.log(res);
             const { friendList } = res.data;
 
             commit("setFriends", friendList);
@@ -175,6 +172,33 @@ export default {
             console.log(error);
             return error.response.data.errorMessage;
         }
+    },
+    setSocket({ commit }, socket) {
+        commit("setSocket", socket);
+    },
+    async leaveChannel({ commit, getters }, channelId) {
+        try {
+            await axios.delete(
+                `${process.env.VUE_APP_API_LINK}/channel-member-leave`,
+                {
+                    headers: { Authorization: `Bearer ${getters.accessToken}` },
+                    data: {
+                        channelId,
+                        userId: getters.id,
+                    },
+                },
+            );
+
+            const { channels } = getters;
+            delete channels[channelId];
+            commit("setChannels", channels);
+        } catch (error) {
+            console.log(error);
+            return error.response.data.errorMessage;
+        }
+    },
+    setChannel({ commit }, { channelId, channel }) {
+        commit("setChannel", { channelId, channel });
     },
 };
 

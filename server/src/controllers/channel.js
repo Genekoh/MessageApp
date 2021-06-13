@@ -4,12 +4,16 @@ const {
     getChannelMessages,
     getUser,
     usersAreFriends,
+    handleError,
+    getAllUsers,
 } = require("../util");
+
 const IO = require("../socket.js");
 
 const User = require("../models/user.js");
 const Channel = require("../models/channel.js");
 const Message = require("../models/message.js");
+const ChannelMember = require("../models/channelMember");
 
 exports.getMessagesFromChannel = async (req, res) => {
     try {
@@ -27,16 +31,7 @@ exports.getMessagesFromChannel = async (req, res) => {
 
         return res.status(200).json({ ok: true, messages, errorMessage: "" });
     } catch (error) {
-        console.log(error.message);
-        if (!error.status) {
-            return res
-                .status(500)
-                .json({ ok: false, messages: [], errorMessage: error.message });
-        }
-
-        return res
-            .status(error.status)
-            .json({ ok: false, messages: [], errorMessage: error.message });
+        handleError(res, error);
     }
 };
 
@@ -81,16 +76,7 @@ exports.postMessage = async (req, res) => {
 
         return res.status(200).json({ ok: true, message, errorMessage: "" });
     } catch (error) {
-        console.log(error.message);
-        if (!error.status) {
-            return res
-                .status(500)
-                .json({ ok: false, message: {}, errorMessage: error.message });
-        }
-
-        return res
-            .status(error.status)
-            .json({ ok: false, message: {}, errorMessage: error.message });
+        handleError(res, error);
     }
 };
 
@@ -101,7 +87,9 @@ exports.postCreateChannel = async (req, res) => {
 
         const members = await Promise.all(
             memberUsernames.map(async memberUsername => {
-                const memberInfo = await getUser({ userName: memberUsername });
+                const memberInfo = await getUser({
+                    where: { userName: memberUsername },
+                });
                 const memberAreFriend = await usersAreFriends(
                     username,
                     memberUsername,
@@ -136,17 +124,138 @@ exports.postCreateChannel = async (req, res) => {
             }),
         );
 
-        return res.status(201).json({ ok: true, errorMessage: "" });
+        return res.status(201).json({ ok: true, errorMessage: "", channel });
     } catch (error) {
-        console.log(error.message);
-        if (!error || !error.status) {
-            return res
-                .status(500)
-                .json({ ok: false, errorMessage: error.message });
+        handleError(res, error);
+    }
+};
+
+exports.postCreateDm = async (req, res) => {
+    try {
+        const { friendUsername } = req.body;
+        const { username } = req.user;
+
+        const userAreFriends = await usersAreFriends(username, friendUsername);
+        if (!userAreFriends) {
+            throwError(401, "user aren't friends");
         }
 
-        return res
-            .status(error.status)
-            .json({ ok: false, errorMessage: error.message });
+        const users = await getAllUsers({
+            where: { userName: [username, friendUsername] },
+        });
+        if (users.length === 0 || users.length !== 2) {
+            throwError(400, "invalid username");
+        }
+        if (users.length !== 2) {
+            throwError(400, "invalid member count for dm");
+        }
+
+        let channel;
+        channel = await Channel.create({
+            type: "dm",
+            memberCount: 2,
+        });
+        if (!channel) {
+            throwError(400, "unable to create channel");
+        }
+
+        await Promise.all(
+            users.map(async user => {
+                const role =
+                    user.userName === req.user.username ? "admin" : "member";
+                await user.addChannel(channel, {
+                    through: { role },
+                });
+            }),
+        );
+
+        return res.status(201).json({ ok: true, errorMessage: "", channel });
+    } catch (error) {
+        handleError(res, error);
+    }
+};
+
+exports.postAddUserToChannel = async (req, res) => {
+    try {
+        const { channelId, friendUsername } = req.body;
+        const { username } = req.user;
+
+        if (!channelId || !friendUsername) {
+            throwError(400, "invalid request body");
+        }
+
+        const channel = await Channel.findByPk(channelId).catch(e => {
+            console.log();
+            throwError(401, "invalid search for channel");
+        });
+        if (!channel) {
+            throwError(401, "channel not found");
+        }
+        const friend = await getUser({
+            where: { userName: friendUsername },
+        }).catch(() => {
+            throwError(401, "invalid search for friend user");
+        });
+        if (!friend) {
+            throwError(401, "friend not found");
+        }
+        const cm = await ChannelMember.findOne({
+            where: { UserId: friend.id, ChannelId: channelId },
+        });
+        if (cm) {
+            throwError(409, "friend is already in channel");
+        }
+
+        const memberAreFriends = await usersAreFriends(
+            username,
+            friend.userName,
+        );
+        if (!memberAreFriends) {
+            throwError(401, "user are not friends");
+        }
+
+        channel.memberCount++;
+        await channel.save();
+
+        await ChannelMember.create({
+            UserId: friend.id,
+            ChannelId: channel.id,
+            role: "member",
+        });
+
+        return res.status(201).json({ ok: true, errorMessage: "", channel });
+    } catch (error) {
+        handleError(res, error);
+    }
+};
+
+exports.deleteUserLeaveChannel = async (req, res) => {
+    try {
+        const { channelId, userId } = req.body;
+
+        if (!channelId || !userId) {
+            throwError(400, "invalid request body");
+        }
+
+        const channel = await Channel.findByPk(channelId).catch(e => {
+            console.log();
+            throwError(401, "invalid search for channel");
+        });
+        if (!channel) {
+            throwError(401, "channel not found");
+        }
+        const member = await ChannelMember.findOne({
+            where: { UserId: userId, ChannelId: channelId },
+        });
+        if (!member) {
+            throwError(409, "user is not in channel");
+        }
+
+        channel.memberCount--;
+        await Promise.all([member.destroy(), channel.save()]);
+
+        return res.status(201).json({ ok: true, errorMessage: "", channel });
+    } catch (error) {
+        handleError(res, error);
     }
 };

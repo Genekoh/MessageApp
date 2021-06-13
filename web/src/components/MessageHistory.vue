@@ -51,12 +51,10 @@ export default {
                     groupedMessages[groupedMessages.length - 1].push(message);
                 }
             });
-            console.log(groupedMessages);
             return groupedMessages;
         });
 
         const userId = computed(() => store.getters.id);
-        console.log(userId.value);
         return { messageHistory, userId };
     },
 };

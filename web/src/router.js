@@ -6,7 +6,6 @@ const Home = () => import("./pages/Home.vue");
 const LogIn = () => import("./pages/LogIn.vue");
 const SignUp = () => import("./pages/SignUp.vue");
 const Messages = () => import("./pages/Messages.vue");
-const Friends = () => import("./pages/Friends.vue");
 
 const redirectIfNotAuth = () => {
     if (!store.getters.isAuthenticated) return { name: "HomeRoute" };
@@ -43,12 +42,6 @@ const router = createRouter({
             path: "/messages/:channel?",
             name: "MessagesRoute",
             component: Messages,
-            beforeEnter: redirectIfNotAuth,
-        },
-        {
-            path: "/friends",
-            name: "FriendsRoute",
-            component: Friends,
             beforeEnter: redirectIfNotAuth,
         },
     ],

@@ -5,6 +5,7 @@
         :id="channel.channelId"
         :channel-name="channel.name"
         @click="changeContact(channel.channelId)"
+        class="my-4"
     ></base-channel>
 </template>
 

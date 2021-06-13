@@ -8,7 +8,7 @@ const {
     sendRefreshToken,
 } = require("../tokenAuth.js");
 const { getIO } = require("../socket.js");
-const { throwError, getUser } = require("../util");
+const { throwError, getUser, handleError } = require("../util");
 
 const User = require("../models/user.js");
 const ChannelMember = require("../models/channelMember.js");
@@ -26,15 +26,15 @@ exports.getRefreshToken = async (req, res) => {
             user = u;
         });
 
-        const username = user.username;
+        const { username } = user;
         if (!username) {
             throwError(403, "invalid authorization header");
         }
 
-        const userInfo = await User.findOne({
+        const userInfo = await getUser({
             where: { userName: username },
         });
-        console.log(refreshToken === userInfo.refreshToken);
+
         if (refreshToken !== userInfo.refreshToken) {
             console.log("hi");
             throwError(403, "invalid refresh token");
@@ -47,6 +47,7 @@ exports.getRefreshToken = async (req, res) => {
         getIO().once("connection", socket => {
             chan.forEach(chanMember => {
                 console.log("client joining channel");
+
                 socket.join(chanMember.ChannelId.toString());
             });
         });
@@ -59,18 +60,7 @@ exports.getRefreshToken = async (req, res) => {
             errorMessage: "",
         });
     } catch (error) {
-        console.log(error.message);
-        if (!error.status) {
-            return res.status(500).json({
-                ok: false,
-                accessToken: "",
-                errorMessage: error.message,
-            });
-        }
-
-        return res
-            .status(error.status)
-            .json({ ok: false, accessToken: "", errorMessage: error.message });
+        handleError(res, error);
     }
 };
 
@@ -82,7 +72,7 @@ exports.postLogin = async (req, res) => {
             throwError(400, "invalid request body");
         }
 
-        const user = await getUser({ userName: username });
+        const user = await getUser({ where: { userName: username } });
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
             throwError(403, "invalid password");
@@ -112,18 +102,7 @@ exports.postLogin = async (req, res) => {
             errorMessage: "",
         });
     } catch (error) {
-        console.log(error.message);
-        if (!error.status) {
-            return res.status(500).json({
-                ok: false,
-                accessToken: "",
-                errorMessage: error.message,
-            });
-        }
-
-        return res
-            .status(error.status)
-            .json({ ok: false, accessToken: "", errorMessage: error.message });
+        handleError(res, error);
     }
 };
 
@@ -161,18 +140,7 @@ exports.postSignup = async (req, res) => {
             errorMessage: "",
         });
     } catch (error) {
-        console.log(error);
-        if (!error.status) {
-            return res.status(500).json({
-                ok: false,
-                accessToken: "",
-                errorMessage: error.message,
-            });
-        }
-
-        return res
-            .status(error.status)
-            .json({ ok: false, accessToken: "", errorMessage: error.message });
+        handleError(res, error);
     }
 };
 
@@ -180,7 +148,7 @@ exports.deleteLogout = async (req, res) => {
     try {
         const { username } = req.user;
 
-        const user = await getUser({ userName: username });
+        const user = await getUser({ where: { userName: username } });
         user.refreshToken = null;
         await user.save();
 
@@ -197,15 +165,6 @@ exports.deleteLogout = async (req, res) => {
 
         return res.status(200).json({ ok: true, errorMessage: "" });
     } catch (error) {
-        console.log(error.message);
-        if (!error.status) {
-            return res
-                .status(500)
-                .json({ ok: false, errorMessage: error.message });
-        }
-
-        return res
-            .status(error.status)
-            .json({ ok: false, errorMessage: error.message });
+        handleError(res, error);
     }
 };

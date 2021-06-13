@@ -17,9 +17,9 @@
         <div class="grid place-items-center">
             <button
                 type="submit"
-                class="font-medium text-ivory rounded-full bg-blush px-4 py-1"
+                class="font-medium focus:outline-none text-ivory rounded-full bg-blush px-4 py-1"
             >
-                Submit
+                Add Friend
             </button>
         </div>
     </form>
@@ -32,7 +32,8 @@ import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 
 export default {
-    setup() {
+    emits: ["friend-added"],
+    setup(_props, context) {
         const store = useStore();
         const router = useRouter();
 
@@ -53,7 +54,8 @@ export default {
                     },
                 );
 
-                router.push({ name: "MessagesRoute" });
+                await router.push({ name: "MessagesRoute" });
+                context.emit("friend-added");
             } catch (error) {
                 console.log(error);
             }

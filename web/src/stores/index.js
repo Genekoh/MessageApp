@@ -11,6 +11,7 @@ const store = createStore({
         id: null,
         channels: {},
         friends: [],
+        socket: null,
     },
     mutations,
     getters,

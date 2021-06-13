@@ -45,7 +45,7 @@ module.exports = async () => {
     }
     if (!channel) {
         channel = await Channel.create({
-            type: "dm",
+            type: "group",
             memberCount: 2,
         });
     }

@@ -40,7 +40,7 @@
                     <li>
                         <router-link
                             :to="{ name: 'SignupRoute' }"
-                            class="text-ivory rounded-full bg-blush px-3 py-1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            hover:bg-gunmetal"
+                            class="text-ivory rounded-full bg-blush px-3 py-1 hover:bg-gunmetal"
                             >Signup</router-link
                         >
                     </li>
@@ -58,26 +58,37 @@
                     <li>
                         <button
                             @click="toggleAddFriend"
-                            class="font-medium hover:text-blush"
+                            class="focus:outline-none font-medium hover:text-blush"
                         >
                             Add Friend
                         </button>
                     </li>
                 </div>
-                <div v-if="friendCondition" class="ml-8">
+                <div v-if="createChannelCondition" class="ml-8">
                     <li>
-                        <router-link
-                            :to="{ name: 'FriendsRoute' }"
-                            class="hover:text-blush"
-                            >Friend List</router-link
+                        <button
+                            @click="toggleCreateChannel"
+                            class="focus:outline-none font-medium hover:text-blush"
                         >
+                            Create Channel
+                        </button>
+                    </li>
+                </div>
+                <div v-if="profilePicCondition" class="ml-8">
+                    <li>
+                        <button
+                            @click="toggleProfilePic"
+                            class="focus:outline-none font-medium hover:text-blush"
+                        >
+                            ProfilePic
+                        </button>
                     </li>
                 </div>
                 <div v-if="logoutCondition" class="ml-8">
                     <li>
                         <button
                             @click="logout"
-                            class="font-medium hover:text-blush"
+                            class="focus:outline-none font-medium hover:text-blush"
                         >
                             Logout
                         </button>
@@ -85,12 +96,28 @@
                 </div>
             </ul>
         </nav>
-        <teleport to="body" dropzone="">
+        <teleport to="body">
             <base-modal
                 v-if="addFriendIsVisible"
                 @close-modal="toggleAddFriend"
             >
-                <add-friend> </add-friend>
+                <add-friend @friend-added="toggleAddFriend"> </add-friend>
+            </base-modal>
+
+            <base-modal
+                v-if="createChannelIsVisible"
+                @close-modal="toggleCreateChannel"
+            >
+                <create-channel @channel-created="toggleCreateChannel">
+                </create-channel>
+            </base-modal>
+
+            <base-modal
+                v-if="profilePicIsVisible"
+                @close-modal="toggleProfilePic"
+            >
+                <change-profile-pic @changed-profilepic="toggleProfilePic">
+                </change-profile-pic>
             </base-modal>
         </teleport>
     </div>
@@ -102,9 +129,11 @@ import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 
 import AddFriend from "./AddFriend.vue";
+import CreateChannel from "./CreateChannel.vue";
+import ChangeProfilePic from "./ChangeProfilePic.vue";
 
 export default {
-    components: { AddFriend },
+    components: { AddFriend, CreateChannel, ChangeProfilePic },
     setup() {
         const store = useStore();
         const route = useRoute();
@@ -152,16 +181,13 @@ export default {
             () => store.getters.isAuthenticated,
         );
 
-        const friendCondition = computed(() => {
-            if (
-                route.name === "FriendsRoute" ||
-                !store.getters.isAuthenticated
-            ) {
-                return false;
-            }
+        const createChannelCondition = computed(
+            () => store.getters.isAuthenticated,
+        );
 
-            return true;
-        });
+        const profilePicCondition = computed(
+            () => store.getters.isAuthenticated,
+        );
 
         const logoutCondition = computed(() => store.getters.isAuthenticated);
 
@@ -180,18 +206,35 @@ export default {
             addFriendIsVisible.value = !addFriendIsVisible.value;
         };
 
+        const createChannelIsVisible = ref(false);
+
+        const toggleCreateChannel = () => {
+            createChannelIsVisible.value = !createChannelIsVisible.value;
+        };
+
+        const profilePicIsVisible = ref(false);
+
+        const toggleProfilePic = () => {
+            profilePicIsVisible.value = !profilePicIsVisible.value;
+        };
+
         return {
             logoRedirect,
             homeCondition,
             loginCondition,
             signupCondition,
             addFriendCondition,
+            createChannelCondition,
+            profilePicCondition,
             logoutCondition,
             logout,
             messagesCondition,
             addFriendIsVisible,
-            friendCondition,
             toggleAddFriend,
+            createChannelIsVisible,
+            toggleCreateChannel,
+            profilePicIsVisible,
+            toggleProfilePic,
         };
     },
 };

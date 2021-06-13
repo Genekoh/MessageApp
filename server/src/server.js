@@ -14,6 +14,7 @@ const Message = require("./models/message.js");
 const Friend = require("./models/friend.js");
 
 (async () => {
+    console.log(process.env.CLIENT_URL.split(","));
     try {
         const app = express();
         app.use(
@@ -67,7 +68,6 @@ const Friend = require("./models/friend.js");
 
         io.on("connection", async socket => {
             console.log("---- A client has connected ----");
-            socket.on;
         });
     } catch (err) {
         console.log(err);

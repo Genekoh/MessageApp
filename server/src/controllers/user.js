@@ -1,36 +1,57 @@
-const Friend = require("../models/friend.js");
 const User = require("../models/user.js");
 const {
     throwError,
+    handleError,
     getUser,
-    getUserChannels,
+    getFriends,
     getAllUserMessages,
     getChannelMembers,
+    usersAreFriends,
+    getAllUsers,
+    getUserChannelsById,
 } = require("../util");
 
 exports.getUserInfo = async (req, res) => {
     try {
         const { username } = req.user;
 
-        const user = await getUser({ userName: username });
-        const userChannels = await getUserChannels(user.id);
+        const user = await getUser({ where: { userName: username } });
+        const userChannels = await getUserChannelsById(user.id);
 
-        const messages = await getAllUserMessages(userChannels);
+        const messages = await getAllUserMessages(user.id);
 
         const channels = {};
         await Promise.all(
             userChannels.map(async channel => {
-                const channelMembers = await getChannelMembers(channel.id);
+                const channelMembers = await getChannelMembers({
+                    where: { ChannelId: channel.id },
+                    attributes: ["UserId"],
+                    raw: true,
+                    include: [
+                        {
+                            model: User,
+                            attributes: ["userName"],
+                        },
+                    ],
+                });
                 const channelMemberIds = channelMembers.map(c => c.UserId);
 
-                const users = await User.findAll({
+                const users = await getAllUsers({
                     where: { id: channelMemberIds },
                     attributes: ["userName"],
                     raw: true,
                 });
                 const usernames = users.map(u => u.userName);
 
-                const name = channel.name ? channel.name : usernames.join(", ");
+                let name = channel.name ? channel.name : usernames.join(", ");
+
+                if (channel.type === "dm" && channelMembers.length === 2) {
+                    const friend = users.filter(
+                        u => u.userName !== username,
+                    )[0];
+                    name = friend.userName;
+                }
+
                 const msg = messages[channel.id];
                 channels[channel.id] = {
                     channelId: channel.id,
@@ -42,27 +63,15 @@ exports.getUserInfo = async (req, res) => {
             }),
         );
 
-        return res
-            .status(200)
-            .json({
-                ok: true,
-                channels,
-                username,
-                id: user.id,
-                errorMessage: "",
-            });
+        return res.status(200).json({
+            ok: true,
+            channels,
+            username,
+            id: user.id,
+            errorMessage: "",
+        });
     } catch (error) {
-        if (!error.status) {
-            return res.status(500).json({
-                ok: false,
-                channels: null,
-                errorMessage: error.message,
-            });
-        }
-
-        return res
-            .status(error.status)
-            .json({ ok: false, channels: null, errorMessage: error.message });
+        handleError(res, error);
     }
 };
 
@@ -70,36 +79,36 @@ exports.getFriendList = async (req, res) => {
     try {
         const { username } = req.user;
 
-        const user = await getUser({ userName: username });
+        const user = await getUser({ where: { userName: username } });
 
-        console.log("bruh", user.id);
-        const friendData = await Friend.findAll({
+        const friendData = await getFriends({
             where: { UserId: user.id },
             include: { model: User, as: "FriendUser" },
         });
-
         const friendList = friendData.map(f => f.FriendUser);
 
         return res.status(200).json({ ok: true, friendList, errorMessage: "" });
     } catch (error) {
-        if (!error.status) {
-            return res.status(500).json({
-                ok: false,
-                friendList: [],
-                errorMessage: error.message,
-            });
-        }
-
-        return res
-            .status(error.status)
-            .json({ ok: false, friendList: [], errorMessage: error.message });
+        handleError(res, error);
     }
 };
 
 exports.postProfilePic = async (req, res) => {
-    const { username } = req.user;
+    try {
+        const { id } = req.params;
+        const user = await getUser({ where: { id } }).catch(e =>
+            throwError(401, "unable to find user"),
+        );
 
-    const user = await getUser({ userName: username });
+        const fileName = req.file.filename;
+        console.log(fileName);
+        user.pathToProfilePic = fileName;
+        await user.save();
+
+        res.status(200).json({ ok: true });
+    } catch (error) {
+        handleError(res, error);
+    }
 };
 
 exports.postAddFriend = async (req, res) => {
@@ -114,33 +123,26 @@ exports.postAddFriend = async (req, res) => {
             throwError(401, "invalid authorization header");
         }
 
-        const user = await getUser({ userName: username });
-        const friendUser = await getUser({ userName: friendUsername });
-
-        const friend = await Friend.findOne({
-            where: { UserId: user.id, FriendUserId: friendUser.id },
+        const user = await getUser({ where: { userName: username } });
+        const friendUser = await getUser({
+            where: { userName: friendUsername },
         });
 
-        if (friend) {
+        const userAreFriends = await usersAreFriends(
+            user.userName,
+            friendUser.userName,
+        );
+        if (userAreFriends) {
             throwError(409, "user already friends");
         }
 
-        await Promise.all(
-            [user.addFriendUser(friendUser)],
-            [friendUser.addFriendUser(user)],
-        );
+        await Promise.all([
+            user.addFriendUser(friendUser),
+            friendUser.addFriendUser(user),
+        ]);
 
         return res.status(200).json({ ok: true, errorMessage: "" });
     } catch (error) {
-        console.log(error);
-        if (!error.status) {
-            return res
-                .status(500)
-                .json({ ok: false, errorMessage: error.message });
-        }
-
-        return res
-            .status(error.status)
-            .json({ ok: false, errorMessage: error.message });
+        handleError(res, error);
     }
 };

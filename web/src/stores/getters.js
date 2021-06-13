@@ -17,4 +17,7 @@ export default {
     friends(state) {
         return state.friends;
     },
+    socket(state) {
+        return state.socket;
+    },
 };

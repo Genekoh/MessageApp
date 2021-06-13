@@ -11,10 +11,10 @@ const isAuth = require("./middlewares/isAuth.js");
 
 const storage = multer.diskStorage({
     destination(_req, _file, cb) {
-        cb(null, "./profilepic");
+        cb(null, path.join(__dirname, "..", "public"));
     },
     filename(req, _file, cb) {
-        cb(null, req.user.username);
+        cb(null, req.user.username + ".png");
     },
 });
 
@@ -25,11 +25,11 @@ const router = express.Router();
 // ROUTES
 
 // Unprotected Routes
-router.get("/refresh-token", authController.getRefreshToken);
-
 router.post("/login", authController.postLogin);
 
 router.post("/signup", authController.postSignup);
+
+router.get("/refresh-token", authController.getRefreshToken);
 
 router.use("/static", express.static(path.join(__dirname, "..", "public")));
 
@@ -41,7 +41,7 @@ router.get("/user-info", isAuth, userController.getUserInfo);
 router.get("/friend-list", isAuth, userController.getFriendList);
 
 router.post(
-    "/profile-pic",
+    "/profile-pic/:id",
     isAuth,
     upload.single("profilePic"),
     userController.postProfilePic,
@@ -56,6 +56,20 @@ router.get(
 );
 
 router.post("/create-channel", isAuth, channelController.postCreateChannel);
+
+router.post("/create-dm", isAuth, channelController.postCreateDm);
+
+router.post(
+    "/add-channel-member",
+    isAuth,
+    channelController.postAddUserToChannel,
+);
+
+router.delete(
+    "/channel-member-leave",
+    isAuth,
+    channelController.deleteUserLeaveChannel,
+);
 
 router.post("/message", isAuth, channelController.postMessage);
 
