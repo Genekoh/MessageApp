@@ -8,12 +8,11 @@ const {
     getAllUsers,
 } = require("../util");
 
-const IO = require("../socket.js");
-
 const User = require("../models/user.js");
 const Channel = require("../models/channel.js");
 const Message = require("../models/message.js");
 const ChannelMember = require("../models/channelMember");
+const { getIO, getSockets } = require("../socket.js");
 
 exports.getMessagesFromChannel = async (req, res) => {
     try {
@@ -67,7 +66,7 @@ exports.postMessage = async (req, res) => {
         });
         console.log(updatedMessage.User.id);
 
-        IO.getIO()
+        getIO()
             .to(channelId.toString())
             .emit("new-message", {
                 channelId,
@@ -82,7 +81,7 @@ exports.postMessage = async (req, res) => {
 
 exports.postCreateChannel = async (req, res) => {
     try {
-        const { name, type, members: memberUsernames } = req.body;
+        const { name, type, members: memberUsernames, socketId } = req.body;
         const { username } = req.user;
 
         const members = await Promise.all(
@@ -132,7 +131,7 @@ exports.postCreateChannel = async (req, res) => {
 
 exports.postCreateDm = async (req, res) => {
     try {
-        const { friendUsername } = req.body;
+        const { friendUsername, socketId } = req.body;
         const { username } = req.user;
 
         const userAreFriends = await usersAreFriends(username, friendUsername);
@@ -168,6 +167,8 @@ exports.postCreateDm = async (req, res) => {
                 });
             }),
         );
+
+        getSockets()[socketId].join(channel.id);
 
         return res.status(201).json({ ok: true, errorMessage: "", channel });
     } catch (error) {

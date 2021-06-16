@@ -122,6 +122,9 @@ exports.postAddFriend = async (req, res) => {
         if (!username) {
             throwError(401, "invalid authorization header");
         }
+        if (username === friendUsername) {
+            throwError(401, "user unable to add self");
+        }
 
         const user = await getUser({ where: { userName: username } });
         const friendUser = await getUser({

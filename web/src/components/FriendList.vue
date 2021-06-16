@@ -75,6 +75,7 @@ export default {
                     {
                         username: store.getters.username,
                         friendUsername,
+                        socketId: store.getters.socket.id,
                     },
                     {
                         headers: {

@@ -41,7 +41,7 @@
 
 <script>
 import { io } from "socket.io-client";
-import { onBeforeMount, onMounted } from "vue";
+import { onBeforeMount, onMounted, computed } from "vue";
 import { useStore } from "vuex";
 import ChannelList from "../components/ChannelList.vue";
 import FriendList from "../components/FriendList.vue";
@@ -77,11 +77,11 @@ export default {
 
         onMounted(() => {
             store.dispatch("setSocket", io(process.env.VUE_APP_API_LINK));
-            const { socket } = store.getters;
-
-            socket.on("new-message", message => {
+            const socket = computed(() => store.getters.socket);
+            socket.value.on("new-message", message => {
                 store.dispatch("addMessage", message);
             });
+            console.log(Object.keys(socket.value));
         });
     },
 };

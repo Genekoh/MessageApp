@@ -1,4 +1,5 @@
 let io;
+let sockets = {};
 
 module.exports = {
     init: httpServer => {
@@ -12,5 +13,11 @@ module.exports = {
         if (!io) throw new Error("Socket.io not initialized");
 
         return io;
+    },
+    getSockets: () => {
+        return sockets;
+    },
+    setSocket(key, value) {
+        sockets[key] = value;
     },
 };

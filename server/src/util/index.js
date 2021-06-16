@@ -47,9 +47,6 @@ const usersAreFriends = async (username, friendUsername) => {
     const users = await User.findAll({
         where: { userName: [username, friendUsername] },
     });
-    if (!users || users.length !== 2) {
-        return false;
-    }
 
     const [user, friend] = users;
 

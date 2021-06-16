@@ -202,7 +202,7 @@ export default {
     },
 };
 
-/*
+/* 
 const friend = await axios.post(
                     process.env.VUE_APP_API_LINK + "/add-friend",
                     {

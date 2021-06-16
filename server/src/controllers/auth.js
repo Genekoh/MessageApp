@@ -7,7 +7,7 @@ const {
     createRefreshToken,
     sendRefreshToken,
 } = require("../tokenAuth.js");
-const { getIO } = require("../socket.js");
+const { getIO, setSocket } = require("../socket.js");
 const { throwError, getUser, handleError } = require("../util");
 
 const User = require("../models/user.js");
@@ -50,6 +50,7 @@ exports.getRefreshToken = async (req, res) => {
 
                 socket.join(chanMember.ChannelId.toString());
             });
+            setSocket(socket.id, socket);
         });
 
         return res.status(200).json({
@@ -85,14 +86,15 @@ exports.postLogin = async (req, res) => {
             where: { UserId: user.id },
         });
 
+        sendRefreshToken(res, refreshToken);
+
         getIO().once("connection", socket => {
             chan.forEach(chanMember => {
                 console.log("client joining channel");
                 socket.join(chanMember.ChannelId.toString());
             });
+            setSocket(socket.id, socket);
         });
-
-        sendRefreshToken(res, refreshToken);
 
         return res.status(200).json({
             ok: true,
